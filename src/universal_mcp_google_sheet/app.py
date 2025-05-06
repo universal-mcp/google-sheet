@@ -140,7 +140,7 @@ class GoogleSheetApp(APIApplication):
         response = self._put(url, data=data, params=params)
         return response.json()
 
-    def get_values(self, spreadsheetId, range, majorDimension=None, valueRenderOption=None, dateTimeRenderOption=None, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None) -> Any:
+    def get_values(self, spreadsheetId, range, majorDimension=None, valueRenderOption=None, dateTimeRenderOption=None, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None) -> Any:
         """
         Get Values
 
@@ -160,7 +160,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
 
         Returns:
             Any: Successful response
@@ -173,12 +173,12 @@ class GoogleSheetApp(APIApplication):
         if range is None:
             raise ValueError("Missing required parameter 'range'")
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values/{range}"
-        query_params = {k: v for k, v in [('majorDimension', majorDimension), ('valueRenderOption', valueRenderOption), ('dateTimeRenderOption', dateTimeRenderOption), ('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('majorDimension', majorDimension), ('valueRenderOption', valueRenderOption), ('dateTimeRenderOption', dateTimeRenderOption), ('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
         return response.json()
 
-    def batch_clear_values(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None, ranges=None) -> dict[str, Any]:
+    def batch_clear_values(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, ranges=None) -> dict[str, Any]:
         """
         Batch Clear Values
 
@@ -194,7 +194,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
             ranges (array): ranges
                 Example:
                 ```json
@@ -219,12 +219,12 @@ class GoogleSheetApp(APIApplication):
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchClear"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
         return response.json()
 
-    def batch_clear_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None, dataFilters=None) -> dict[str, Any]:
+    def batch_clear_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None) -> dict[str, Any]:
         """
         Batch Clear Values by Data Filter
 
@@ -240,7 +240,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
             dataFilters (array): dataFilters
                 Example:
                 ```json
@@ -321,12 +321,12 @@ class GoogleSheetApp(APIApplication):
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
         return response.json()
 
-    def get_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None, dataFilters=None, dateTimeRenderOption=None, majorDimension=None, valueRenderOption=None) -> Any:
+    def get_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None, dateTimeRenderOption=None, majorDimension=None, valueRenderOption=None) -> Any:
         """
         Get Values By Data Filter
 
@@ -342,7 +342,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
             dataFilters (array): dataFilters Example: "[{'a1Range': 'eiusmod anim enim culpa', 'developerMetadataLookup': {'locationMatchingStrategy': 'INTERSECTING_LOCATION', 'locationType': 'SPREADSHEET', 'metadataId': -64798951, 'metadataKey': 'sint minim commodo', 'metadataLocation': {'dimensionRange': {'dimension': 'ROWS', 'endIndex': 34518543, 'sheetId': 68337575, 'startIndex': 91706381}, 'locationType': 'ROW', 'sheetId': -33783740, 'spreadsheet': True}, 'metadataValue': 'sunt', 'visibility': 'DEVELOPER_METADATA_VISIBILITY_UNSPECIFIED'}, 'gridRange': {'endColumnIndex': -96821047, 'endRowIndex': -9277805, 'sheetId': 7522437, 'startColumnIndex': 85603635, 'startRowIndex': -31384652}}, {'a1Range': 'sunt irure dolor', 'developerMetadataLookup': {'locationMatchingStrategy': 'DEVELOPER_METADATA_LOCATION_MATCHING_STRATEGY_UNSPECIFIED', 'locationType': 'SHEET', 'metadataId': 26360577, 'metadataKey': 'in minim nulla aliquip laboris', 'metadataLocation': {'dimensionRange': {'dimension': 'COLUMNS', 'endIndex': -14426665, 'sheetId': 88787400, 'startIndex': -98846780}, 'locationType': 'COLUMN', 'sheetId': -14062757, 'spreadsheet': True}, 'metadataValue': 'proident au', 'visibility': 'DOCUMENT'}, 'gridRange': {'endColumnIndex': -11696202, 'endRowIndex': -87528654, 'sheetId': 32991035, 'startColumnIndex': -95148112, 'startRowIndex': -72465558}}]".
             dateTimeRenderOption (string): dateTimeRenderOption Example: 'FORMATTED_STRING'.
             majorDimension (string): majorDimension Example: 'DIMENSION_UNSPECIFIED'.
@@ -432,12 +432,12 @@ class GoogleSheetApp(APIApplication):
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
         return response.json()
 
-    def copy_to_sheet(self, spreadsheetId, sheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None, destinationSpreadsheetId=None) -> dict[str, Any]:
+    def copy_to_sheet(self, spreadsheetId, sheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, destinationSpreadsheetId=None) -> dict[str, Any]:
         """
         Copy To Sheet
 
@@ -454,7 +454,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
             destinationSpreadsheetId (string): destinationSpreadsheetId
                 Example:
                 ```json
@@ -478,12 +478,12 @@ class GoogleSheetApp(APIApplication):
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/sheets/{{sheetId}}:copyTo"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
         return response.json()
     
-    def get_developer_metadata(self, spreadsheetId, metadataId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None) -> dict[str, Any]:
+    def get_developer_metadata(self, spreadsheetId, metadataId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None) -> dict[str, Any]:
         """
         Get Developer Metadata
 
@@ -500,7 +500,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
 
         Returns:
             dict[str, Any]: Successful response
@@ -513,12 +513,12 @@ class GoogleSheetApp(APIApplication):
         if metadataId is None:
             raise ValueError("Missing required parameter 'metadataId'")
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/developerMetadata/{metadataId}"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
         return response.json()
 
-    def search_developer_metadata(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, __xgafv=None, dataFilters=None) -> dict[str, Any]:
+    def search_developer_metadata(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None) -> dict[str, Any]:
         """
         Search Developer Metadata
 
@@ -534,7 +534,7 @@ class GoogleSheetApp(APIApplication):
             quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
             upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
             uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            __xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
+            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
             dataFilters (array): dataFilters
                 Example:
                 ```json
@@ -615,7 +615,7 @@ class GoogleSheetApp(APIApplication):
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
         url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/developerMetadata:search"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', __xgafv)] if v is not None}
+        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
         return response.json()
