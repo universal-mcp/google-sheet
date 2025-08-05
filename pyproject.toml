@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "universal-mcp-google-sheet"
-version = "0.1.5"
+version = "0.1.6"
 description = "A Universal MCP Application: universal_mcp_google_sheet"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,7 +12,7 @@ classifiers = [ "Programming Language :: Python :: 3", "Programming Language :: 
 dependencies = [
  "langchain-openai>=0.3.28",
  "langgraph>=0.6.0",
- "universal-mcp==0.1.24rc2",
+ "universal-mcp==0.1.23",
 ]
 [[project.authors]]
 name = "Manoj Bajaj"
