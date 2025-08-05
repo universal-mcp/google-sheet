@@ -328,6 +328,124 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def add_column_chart(
+        self,
+        spreadsheet_id: str,
+        source_sheet_id: int,
+        chart_title: str,
+        domain_range: dict,
+        series_ranges: list[dict],
+        new_sheet: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Adds a column chart to a Google Spreadsheet.
+
+        This function creates a column chart from the specified data ranges and places it in a new sheet or existing sheet.
+        Use this when you need to visualize data in a column chart format.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            source_sheet_id: The ID of the sheet containing the source data
+            chart_title: The title for the chart
+            domain_range: Dictionary containing domain range info (e.g., {"startRowIndex": 0, "endRowIndex": 7, "startColumnIndex": 0, "endColumnIndex": 1})
+            series_ranges: List of dictionaries containing series range info for each data series
+            new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
+
+        Returns:
+            A dictionary containing the Google Sheets API response with the chart details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or invalid parameters are provided
+
+        Tags:
+            add, chart, column, visualization, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not chart_title:
+            raise ValueError("chart_title cannot be empty")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        # Build the chart specification
+        chart_spec = {
+            "title": chart_title,
+            "basicChart": {
+                "chartType": "COLUMN",
+                "legendPosition": "BOTTOM_LEGEND",
+                "axis": [
+                    {
+                        "position": "BOTTOM_AXIS",
+                        "title": "Categories"
+                    },
+                    {
+                        "position": "LEFT_AXIS",
+                        "title": "Values"
+                    }
+                ],
+                "domains": [
+                    {
+                        "domain": {
+                            "sourceRange": {
+                                "sources": [
+                                    {
+                                        "sheetId": source_sheet_id,
+                                        "startRowIndex": domain_range.get("startRowIndex", 0),
+                                        "endRowIndex": domain_range.get("endRowIndex", 1),
+                                        "startColumnIndex": domain_range.get("startColumnIndex", 0),
+                                        "endColumnIndex": domain_range.get("endColumnIndex", 1)
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "series": [],
+                "headerCount": 1
+            }
+        }
+        
+        # Add series data
+        for series_range in series_ranges:
+            series = {
+                "series": {
+                    "sourceRange": {
+                        "sources": [
+                            {
+                                "sheetId": source_sheet_id,
+                                "startRowIndex": series_range.get("startRowIndex", 0),
+                                "endRowIndex": series_range.get("endRowIndex", 1),
+                                "startColumnIndex": series_range.get("startColumnIndex", 0),
+                                "endColumnIndex": series_range.get("endColumnIndex", 1)
+                            }
+                        ]
+                    }
+                },
+                "targetAxis": "LEFT_AXIS"
+            }
+            chart_spec["basicChart"]["series"].append(series)
+        
+        # Build the request body
+        request_body = {
+            "requests": [
+                {
+                    "addChart": {
+                        "chart": {
+                            "spec": chart_spec,
+                            "position": {
+                                "newSheet": new_sheet
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
 
     def clear_values(self, spreadsheet_id: str, range: str) -> dict[str, Any]:
         """
@@ -739,6 +857,7 @@ class GoogleSheetApp(APIApplication):
             self.append_dimensions,
             self.delete_dimensions,
             self.add_sheet,
+            self.add_column_chart,
             self.clear_values,
             self.update_values,
             #Auto genearted tools from openapi spec
