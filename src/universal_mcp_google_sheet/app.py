@@ -206,6 +206,69 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def delete_dimensions(
+        self,
+        spreadsheet_id: str,
+        sheet_id: int,
+        dimension: str,
+        start_index: int,
+        end_index: int,
+    ) -> dict[str, Any]:
+        """
+        Deletes rows or columns from a Google Sheet.
+
+        This function removes the specified rows or columns from the sheet, shifting remaining content up or left.
+        Use this when you need to remove unwanted rows or columns from your data.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            sheet_id: The ID of the sheet within the spreadsheet (0 for first sheet)
+            dimension: The type of dimension to delete - "ROWS" or "COLUMNS"
+            start_index: The 0-based starting index of the range to delete (inclusive)
+            end_index: The 0-based ending index of the range to delete (exclusive). Number of rows/columns deleted = end_index - start_index
+
+        Returns:
+            A dictionary containing the Google Sheets API response with update details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty, dimension is not "ROWS" or "COLUMNS", or indices are invalid
+
+        Tags:
+            delete, modify, spreadsheet, rows, columns, dimensions, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if dimension not in ["ROWS", "COLUMNS"]:
+            raise ValueError('dimension must be either "ROWS" or "COLUMNS"')
+        
+        if start_index < 0 or end_index < 0:
+            raise ValueError("start_index and end_index must be non-negative")
+        
+        if start_index >= end_index:
+            raise ValueError("end_index must be greater than start_index")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        request_body = {
+            "requests": [
+                {
+                    "deleteDimension": {
+                        "range": {
+                            "sheetId": sheet_id,
+                            "dimension": dimension,
+                            "startIndex": start_index,
+                            "endIndex": end_index,
+                        }
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
 
     def clear_values(self, spreadsheet_id: str, range: str) -> dict[str, Any]:
         """
@@ -615,6 +678,7 @@ class GoogleSheetApp(APIApplication):
             self.batch_get_values,
             self.insert_dimensions,
             self.append_dimensions,
+            self.delete_dimensions,
             self.clear_values,
             self.update_values,
             #Auto genearted tools from openapi spec
