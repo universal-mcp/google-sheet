@@ -12,8 +12,7 @@ class GoogleSheetApp(APIApplication):
 
     def __init__(self, integration: Integration | None = None) -> None:
         super().__init__(name="google-sheet", integration=integration)
-        self.base_api_url = "https://sheets.googleapis.com/v4/spreadsheets"
-        self.base_url = "https://sheets.googleapis.com"
+        self.base_url = "https://sheets.googleapis.com/v4/spreadsheets"
 
     def create_spreadsheet(self, title: str) -> dict[str, Any]:
         """
@@ -32,10 +31,10 @@ class GoogleSheetApp(APIApplication):
         Tags:
             create, spreadsheet, google-sheets, api, important
         """
-        url = self.base_api_url
+        url = self.base_url
         spreadsheet_data = {"properties": {"title": title}}
         response = self._post(url, data=spreadsheet_data)
-        return response.json()
+        return self._handle_response(response)
 
     def get_spreadsheet(self, spreadsheet_id: str) -> dict[str, Any]:
         """
@@ -55,9 +54,9 @@ class GoogleSheetApp(APIApplication):
         Tags:
             get, retrieve, spreadsheet, api, metadata, read, important
         """
-        url = f"{self.base_api_url}/{spreadsheet_id}"
+        url = f"{self.base_url}/{spreadsheet_id}"
         response = self._get(url)
-        return response.json()
+        return self._handle_response(response)
 
     def batch_get_values(
         self, spreadsheet_id: str, ranges: list[str] = None
@@ -79,12 +78,13 @@ class GoogleSheetApp(APIApplication):
         Tags:
             get, batch, read, spreadsheet, values, important
         """
-        url = f"{self.base_api_url}/{spreadsheet_id}/values:batchGet"
+        url = f"{self.base_url}/{spreadsheet_id}/values:batchGet"
         params = {}
         if ranges:
             params["ranges"] = ranges
         response = self._get(url, params=params)
-        return response.json()
+        return self._handle_response(response)
+
 
     def clear_values(self, spreadsheet_id: str, range: str) -> dict[str, Any]:
         """
@@ -104,9 +104,9 @@ class GoogleSheetApp(APIApplication):
         Tags:
             clear, modify, spreadsheet, api, sheets, data-management, important
         """
-        url = f"{self.base_api_url}/{spreadsheet_id}/values/{range}:clear"
+        url = f"{self.base_url}/{spreadsheet_id}/values/{range}:clear"
         response = self._post(url, data={})
-        return response.json()
+        return self._handle_response(response)
 
     def update_values(
         self,
@@ -134,11 +134,11 @@ class GoogleSheetApp(APIApplication):
         Tags:
             update, write, sheets, api, important, data-modification, google-sheets
         """
-        url = f"{self.base_api_url}/{spreadsheet_id}/values/{range}"
+        url = f"{self.base_url}/{spreadsheet_id}/values/{range}"
         params = {"valueInputOption": value_input_option}
         data = {"range": range, "values": values}
         response = self._put(url, data=data, params=params)
-        return response.json()
+        return self._handle_response(response)
 
     def get_values(self, spreadsheetId, range, majorDimension=None, valueRenderOption=None, dateTimeRenderOption=None, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None) -> Any:
         """
@@ -172,7 +172,7 @@ class GoogleSheetApp(APIApplication):
             raise ValueError("Missing required parameter 'spreadsheetId'")
         if range is None:
             raise ValueError("Missing required parameter 'range'")
-        url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values/{range}"
+        url = f"{self.base_url}/{spreadsheetId}/values/{range}"
         query_params = {k: v for k, v in [('majorDimension', majorDimension), ('valueRenderOption', valueRenderOption), ('dateTimeRenderOption', dateTimeRenderOption), ('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._get(url, params=query_params)
         response.raise_for_status()
@@ -218,7 +218,7 @@ class GoogleSheetApp(APIApplication):
             'ranges': ranges,
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchClear"
+        url = f"{self.base_url}/{spreadsheetId}/values:batchClear"
         query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
@@ -320,7 +320,7 @@ class GoogleSheetApp(APIApplication):
             'dataFilters': dataFilters,
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchClearByDataFilter"
+        url = f"{self.base_url}/{spreadsheetId}/values:batchClearByDataFilter"
         query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
@@ -431,7 +431,7 @@ class GoogleSheetApp(APIApplication):
             'valueRenderOption': valueRenderOption,
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/values:batchGetByDataFilter"
+        url = f"{self.base_url}/{spreadsheetId}/values:batchGetByDataFilter"
         query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
@@ -477,7 +477,7 @@ class GoogleSheetApp(APIApplication):
             'destinationSpreadsheetId': destinationSpreadsheetId,
         }
         request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/v4/spreadsheets/{spreadsheetId}/sheets/{{sheetId}}:copyTo"
+        url = f"{self.base_url}/{spreadsheetId}/sheets/{{sheetId}}:copyTo"
         query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
         response = self._post(url, data=request_body, params=query_params)
         response.raise_for_status()
