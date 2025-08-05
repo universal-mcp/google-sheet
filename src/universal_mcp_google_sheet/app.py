@@ -446,6 +446,103 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def add_table(
+        self,
+        spreadsheet_id: str,
+        sheet_id: int,
+        table_name: str,
+        table_id: str,
+        start_row_index: int,
+        end_row_index: int,
+        start_column_index: int,
+        end_column_index: int,
+        column_properties: list[dict] = None,
+    ) -> dict[str, Any]:
+        """
+        Adds a table to a Google Spreadsheet.
+
+        This function creates a table with specified properties and column types.
+        Use this when you need to create structured data with headers, footers, and column types.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            sheet_id: The ID of the sheet where the table will be created
+            table_name: The name of the table
+            table_id: The unique identifier for the table
+            start_row_index: The starting row index (0-based)
+            end_row_index: The ending row index (exclusive)
+            start_column_index: The starting column index (0-based)
+            end_column_index: The ending column index (exclusive)
+            column_properties: Optional list of column properties with types and validation rules.
+                Example: [
+                    {"columnIndex": 0, "columnName": "Model Number", "columnType": "TEXT"},
+                    {"columnIndex": 1, "columnName": "Sales - Jan", "columnType": "NUMBER"},
+                    {"columnIndex": 2, "columnName": "Progress", "columnType": "PERCENT"},
+                    {"columnIndex": 3, "columnName": "Status", "columnType": "DROPDOWN", "dataValidationRule": {"condition": {"type": "ONE_OF_LIST", "values": [{"userEnteredValue": "Active"}, {"userEnteredValue": "Inactive"}]}}},
+                    {"columnIndex": 4, "columnName": "Active", "columnType": "CHECKBOX"}
+                ]
+
+        Returns:
+            A dictionary containing the Google Sheets API response with the table details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or invalid parameters are provided
+
+        Tags:
+            add, table, structured-data, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not table_name:
+            raise ValueError("table_name cannot be empty")
+        
+        if not table_id:
+            raise ValueError("table_id cannot be empty")
+        
+        if start_row_index < 0 or end_row_index < 0 or start_column_index < 0 or end_column_index < 0:
+            raise ValueError("All indices must be non-negative")
+        
+        if start_row_index >= end_row_index:
+            raise ValueError("end_row_index must be greater than start_row_index")
+        
+        if start_column_index >= end_column_index:
+            raise ValueError("end_column_index must be greater than start_column_index")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        # Build the table specification
+        table_spec = {
+            "name": table_name,
+            "tableId": table_id,
+            "range": {
+                "sheetId": sheet_id,
+                "startColumnIndex": start_column_index,
+                "endColumnIndex": end_column_index,
+                "startRowIndex": start_row_index,
+                "endRowIndex": end_row_index,
+            }
+        }
+        
+        # Add column properties if provided
+        if column_properties:
+            table_spec["columnProperties"] = column_properties
+        
+        # Build the request body
+        request_body = {
+            "requests": [
+                {
+                    "addTable": {
+                        "table": table_spec
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
 
     def clear_values(self, spreadsheet_id: str, range: str) -> dict[str, Any]:
         """
@@ -858,6 +955,7 @@ class GoogleSheetApp(APIApplication):
             self.delete_dimensions,
             self.add_sheet,
             self.add_column_chart,
+            self.add_table,
             self.clear_values,
             self.update_values,
             #Auto genearted tools from openapi spec
