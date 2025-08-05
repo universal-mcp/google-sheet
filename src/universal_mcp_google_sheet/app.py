@@ -269,6 +269,65 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def add_sheet(
+        self,
+        spreadsheet_id: str,
+        title: str = None,
+        sheet_id: int = None,
+        index: int = None,
+    ) -> dict[str, Any]:
+        """
+        Adds a new sheet to an existing Google Spreadsheet.
+
+        This function creates a new sheet within the specified spreadsheet with optional properties.
+        Use this when you need to add additional sheets to organize your data.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            title: Optional title for the new sheet. If not provided, a default title will be generated
+            sheet_id: Optional custom sheet ID. If not provided, Google Sheets will assign one automatically
+            index: Optional position where the new sheet should be inserted (0-based). If not provided, the sheet will be added at the end
+
+        Returns:
+            A dictionary containing the Google Sheets API response with the new sheet details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty
+
+        Tags:
+            add, sheet, spreadsheet, create, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        # Build the addSheet request with properties
+        add_sheet_request = {
+            "properties": {}
+        }
+        
+        if title is not None:
+            add_sheet_request["properties"]["title"] = title
+        
+        if sheet_id is not None:
+            add_sheet_request["properties"]["sheetId"] = sheet_id
+        
+        if index is not None:
+            add_sheet_request["properties"]["index"] = index
+        
+        request_body = {
+            "requests": [
+                {
+                    "addSheet": add_sheet_request
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
 
     def clear_values(self, spreadsheet_id: str, range: str) -> dict[str, Any]:
         """
@@ -679,6 +738,7 @@ class GoogleSheetApp(APIApplication):
             self.insert_dimensions,
             self.append_dimensions,
             self.delete_dimensions,
+            self.add_sheet,
             self.clear_values,
             self.update_values,
             #Auto genearted tools from openapi spec
