@@ -665,43 +665,6 @@ class GoogleSheetApp(APIApplication):
         response = self._put(url, data=data, params=params)
         return self._handle_response(response)
 
-    def get_values(self, spreadsheetId, range, majorDimension=None, valueRenderOption=None, dateTimeRenderOption=None, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None) -> Any:
-        """
-        Get Values
-
-        Args:
-            spreadsheetId (string): spreadsheetId
-            range (string): range
-            majorDimension (string): No description provided. Example: '{{majorDimension}}'.
-            valueRenderOption (string): No description provided. Example: '{{valueRenderOption}}'.
-            dateTimeRenderOption (string): No description provided. Example: '{{dateTimeRenderOption}}'.
-            access_token (string): OAuth access token. Example: '{{accessToken}}'.
-            alt (string): Data format for response. Example: '{{alt}}'.
-            callback (string): JSONP Example: '{{callback}}'.
-            fields (string): Selector specifying which fields to include in a partial response. Example: '{{fields}}'.
-            key (string): API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token. Example: '{{key}}'.
-            oauth_token (string): OAuth 2.0 token for the current user. Example: '{{oauthToken}}'.
-            prettyPrint (string): Returns response with indentations and line breaks. Example: '{{prettyPrint}}'.
-            quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
-            upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
-            uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
-
-        Returns:
-            Any: Successful response
-
-        Tags:
-            Values
-        """
-        if spreadsheetId is None:
-            raise ValueError("Missing required parameter 'spreadsheetId'")
-        if range is None:
-            raise ValueError("Missing required parameter 'range'")
-        url = f"{self.base_url}/{spreadsheetId}/values/{range}"
-        query_params = {k: v for k, v in [('majorDimension', majorDimension), ('valueRenderOption', valueRenderOption), ('dateTimeRenderOption', dateTimeRenderOption), ('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
-        response = self._get(url, params=query_params)
-        response.raise_for_status()
-        return response.json()
 
     def batch_clear_values(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, ranges=None) -> dict[str, Any]:
         """
@@ -1008,9 +971,69 @@ class GoogleSheetApp(APIApplication):
         response.raise_for_status()
         return response.json()
     
+    def batch_update(
+        self,
+        spreadsheet_id: str,
+        sheet_name: str,
+        values: list[list[Any]],
+        first_cell_location: str = None,
+        value_input_option: str = "USER_ENTERED",
+        include_values_in_response: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Updates a specified range in a google sheet with given values, or appends them as new rows if `first cell location` is omitted; ensure the target sheet exists and the spreadsheet contains at least one worksheet.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Sheets spreadsheet to be updated. Example: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+            sheet_name: The name of the specific sheet within the spreadsheet to update. Example: "Sheet1"
+            values: A 2D list of cell values. Each inner list represents a row. Values can be strings, numbers, or booleans. Ensure columns are properly aligned across rows. Example: [['Item', 'Cost', 'Stocked', 'Ship Date'], ['Wheel', 20.5, True, '2020-06-01'], ['Screw', 0.5, True, '2020-06-03'], ['Nut', 0.25, False, '2020-06-02']]
+            first_cell_location: The starting cell for the update range, specified in A1 notation (e.g., 'A1', 'B2'). The update will extend from this cell to the right and down, based on the provided values. If omitted, values are appended to the sheet. Example: "A1"
+            value_input_option: How input data is interpreted. 'USER_ENTERED': Values parsed as if typed by a user (e.g., strings may become numbers/dates, formulas are calculated); recommended for formulas. 'RAW': Values stored as-is without parsing (e.g., '123' stays string, '=SUM(A1:B1)' stays string). Defaults to 'USER_ENTERED'. Example: "USER_ENTERED"
+            include_values_in_response: If set to True, the response will include the updated values from the spreadsheet. Defaults to False. Example: True
+
+        Returns:
+            A dictionary containing the Google Sheets API response with update details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty, sheet_name is empty, or values is empty
+
+        Tags:
+            batch, update, write, sheets, api, important, data-modification, google-sheets
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not sheet_name:
+            raise ValueError("sheet_name cannot be empty")
+        
+        if not values or not isinstance(values, list) or len(values) == 0:
+            raise ValueError("values must be a non-empty 2D list")
+        
+        if value_input_option not in ["RAW", "USER_ENTERED"]:
+            raise ValueError('value_input_option must be either "RAW" or "USER_ENTERED"')
+        
+        # Determine the range based on first_cell_location
+        if first_cell_location:
+            # Update specific range starting from first_cell_location
+            range_str = f"{sheet_name}!{first_cell_location}"
+        else:
+            # Append to the sheet (no specific range)
+            range_str = f"{sheet_name}"
+        
+        url = f"{self.base_url}/{spreadsheet_id}/values/{range_str}"
+        
+        params = {
+            "valueInputOption": value_input_option,
+            "includeValuesInResponse": include_values_in_response
+        }
+        
+        data = {"values": values}
+        
+        response = self._put(url, data=data, params=params)
+        return self._handle_response(response)
 
 
-    
     def list_tools(self):
         """Returns a list of methods exposed as tools."""
         return [
@@ -1025,8 +1048,8 @@ class GoogleSheetApp(APIApplication):
             self.add_table,
             self.clear_values,
             self.update_values,
+            self.batch_update,
             #Auto genearted tools from openapi spec
-            self.get_values,
             self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
             self.get_values_by_data_filter,  
