@@ -1033,6 +1033,48 @@ class GoogleSheetApp(APIApplication):
         response = self._put(url, data=data, params=params)
         return self._handle_response(response)
 
+    def clear_basic_filter(
+        self,
+        spreadsheet_id: str,
+        sheet_id: int,
+    ) -> dict[str, Any]:
+        """
+        Tool to clear the basic filter from a sheet. use when you need to remove an existing basic filter from a specific sheet within a google spreadsheet.
+
+        Args:
+            spreadsheet_id: The ID of the spreadsheet. Example: "abc123xyz789"
+            sheet_id: The ID of the sheet on which the basic filter should be cleared. Example: 0
+
+        Returns:
+            A dictionary containing the Google Sheets API response with update details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or sheet_id is negative
+
+        Tags:
+            clear, filter, basic-filter, spreadsheet, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if sheet_id < 0:
+            raise ValueError("sheet_id must be non-negative")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        request_body = {
+            "requests": [
+                {
+                    "clearBasicFilter": {
+                        "sheetId": sheet_id
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
 
     def list_tools(self):
         """Returns a list of methods exposed as tools."""
@@ -1049,9 +1091,11 @@ class GoogleSheetApp(APIApplication):
             self.clear_values,
             self.update_values,
             self.batch_update,
+            self.clear_basic_filter,
             #Auto genearted tools from openapi spec
             self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
             self.get_values_by_data_filter,  
             self.copy_to_sheet,
+            
         ]
