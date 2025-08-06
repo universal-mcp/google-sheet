@@ -271,37 +271,62 @@ class GoogleSheetApp(APIApplication):
 
     def add_sheet(
         self,
-        spreadsheet_id: str,
+        spreadsheetId: str,
         title: str = None,
-        sheet_id: int = None,
+        sheetId: int = None,
         index: int = None,
+        sheetType: str = "GRID",
+        hidden: bool = None,
+        rightToLeft: bool = None,
+        tabColorStyle: dict = None,
+        # Grid properties
+        rowCount: int = None,
+        columnCount: int = None,
+        frozenRowCount: int = None,
+        frozenColumnCount: int = None,
+        hideGridlines: bool = None,
+        rowGroupControlAfter: bool = None,
+        columnGroupControlAfter: bool = None,
+        # Response options
+        includeSpreadsheetInResponse: bool = False,
+        responseIncludeGridData: bool = False,
     ) -> dict[str, Any]:
         """
-        Adds a new sheet to an existing Google Spreadsheet.
-
-        This function creates a new sheet within the specified spreadsheet with optional properties.
-        Use this when you need to add additional sheets to organize your data.
+        Adds a new sheet (worksheet) to a spreadsheet. use this tool to create a new tab within an existing google sheet, optionally specifying its title, index, size, and other properties.
 
         Args:
-            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
-            title: Optional title for the new sheet. If not provided, a default title will be generated
-            sheet_id: Optional custom sheet ID. If not provided, Google Sheets will assign one automatically
-            index: Optional position where the new sheet should be inserted (0-based). If not provided, the sheet will be added at the end
+            spreadsheetId: The ID of the spreadsheet to add the sheet to. This is the long string of characters in the URL of your Google Sheet. Example: "abc123xyz789"
+            title: The name of the sheet. Example: "Q3 Report"
+            sheetId: The ID of the sheet. If not set, an ID will be randomly generated. Must be non-negative if set.
+            index: The zero-based index of the sheet in the spreadsheet. Example: 0 for the first sheet.
+            sheetType: The type of sheet. Options: "GRID", "OBJECT", "DATA_SOURCE". Defaults to "GRID"
+            hidden: True if the sheet is hidden in the UI, false if it's visible.
+            rightToLeft: True if the sheet is an RTL sheet, false if it's LTR.
+            tabColorStyle: The color of the sheet tab. Can contain either 'rgbColor' (with red, green, blue, alpha values 0-1) or 'themeColor' (TEXT, BACKGROUND, ACCENT1-6, LINK).
+            rowCount: The number of rows in the sheet.
+            columnCount: The number of columns in the sheet.
+            frozenRowCount: The number of rows that are frozen in the sheet.
+            frozenColumnCount: The number of columns that are frozen in the sheet.
+            hideGridlines: True if the gridlines are hidden, false if they are shown.
+            rowGroupControlAfter: True if the row group control toggle is shown after the group, false if before.
+            columnGroupControlAfter: True if the column group control toggle is shown after the group, false if before.
+            includeSpreadsheetInResponse: Whether the response should include the entire spreadsheet resource. Defaults to false.
+            responseIncludeGridData: True if grid data should be returned. This parameter is ignored if includeSpreadsheetInResponse is false. Defaults to false.
 
         Returns:
             A dictionary containing the Google Sheets API response with the new sheet details
 
         Raises:
             HTTPError: When the API request fails due to invalid parameters or insufficient permissions
-            ValueError: When spreadsheet_id is empty
+            ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
             add, sheet, spreadsheet, create, important
         """
-        if not spreadsheet_id:
-            raise ValueError("spreadsheet_id cannot be empty")
+        if not spreadsheetId:
+            raise ValueError("spreadsheetId cannot be empty")
         
-        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        url = f"{self.base_url}/{spreadsheetId}:batchUpdate"
         
         # Build the addSheet request with properties
         add_sheet_request = {
@@ -311,18 +336,60 @@ class GoogleSheetApp(APIApplication):
         if title is not None:
             add_sheet_request["properties"]["title"] = title
         
-        if sheet_id is not None:
-            add_sheet_request["properties"]["sheetId"] = sheet_id
+        if sheetId is not None:
+            add_sheet_request["properties"]["sheetId"] = sheetId
         
         if index is not None:
             add_sheet_request["properties"]["index"] = index
+        
+        if sheetType is not None:
+            add_sheet_request["properties"]["sheetType"] = sheetType
+        
+        if hidden is not None:
+            add_sheet_request["properties"]["hidden"] = hidden
+        
+        if rightToLeft is not None:
+            add_sheet_request["properties"]["rightToLeft"] = rightToLeft
+        
+        if tabColorStyle is not None:
+            add_sheet_request["properties"]["tabColorStyle"] = tabColorStyle
+        
+        # Build grid properties if any grid-related parameters are provided
+        grid_properties = {}
+        if any(param is not None for param in [rowCount, columnCount, frozenRowCount, frozenColumnCount, 
+                                             hideGridlines, rowGroupControlAfter, columnGroupControlAfter]):
+            
+            if rowCount is not None:
+                grid_properties["rowCount"] = rowCount
+            
+            if columnCount is not None:
+                grid_properties["columnCount"] = columnCount
+            
+            if frozenRowCount is not None:
+                grid_properties["frozenRowCount"] = frozenRowCount
+            
+            if frozenColumnCount is not None:
+                grid_properties["frozenColumnCount"] = frozenColumnCount
+            
+            if hideGridlines is not None:
+                grid_properties["hideGridlines"] = hideGridlines
+            
+            if rowGroupControlAfter is not None:
+                grid_properties["rowGroupControlAfter"] = rowGroupControlAfter
+            
+            if columnGroupControlAfter is not None:
+                grid_properties["columnGroupControlAfter"] = columnGroupControlAfter
+            
+            add_sheet_request["properties"]["gridProperties"] = grid_properties
         
         request_body = {
             "requests": [
                 {
                     "addSheet": add_sheet_request
                 }
-            ]
+            ],
+            "includeSpreadsheetInResponse": includeSpreadsheetInResponse,
+            "responseIncludeGridData": responseIncludeGridData
         }
         
         response = self._post(url, data=request_body)
