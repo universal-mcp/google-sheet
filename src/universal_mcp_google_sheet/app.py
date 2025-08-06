@@ -213,19 +213,23 @@ class GoogleSheetApp(APIApplication):
         dimension: str,
         start_index: int,
         end_index: int,
+        include_spreadsheet_in_response: bool = None,
+        response_include_grid_data: bool = None,
+        response_ranges: list[str] = None,
     ) -> dict[str, Any]:
         """
-        Deletes rows or columns from a Google Sheet.
-
-        This function removes the specified rows or columns from the sheet, shifting remaining content up or left.
-        Use this when you need to remove unwanted rows or columns from your data.
+        Tool to delete specified rows or columns from a sheet in a google spreadsheet. use when you need to remove a range of rows or columns.
+        or Use this when you need to remove unwanted rows or columns from your data.
 
         Args:
-            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
-            sheet_id: The ID of the sheet within the spreadsheet (0 for first sheet)
-            dimension: The type of dimension to delete - "ROWS" or "COLUMNS"
-            start_index: The 0-based starting index of the range to delete (inclusive)
-            end_index: The 0-based ending index of the range to delete (exclusive). Number of rows/columns deleted = end_index - start_index
+            spreadsheet_id: The ID of the spreadsheet. Example: "abc123xyz789"
+            sheet_id: The ID of the sheet from which to delete the dimension. Example: 0 for first sheet
+            dimension: The dimension to delete. Example: "ROWS"
+            start_index: The zero-based start index of the range to delete, inclusive. The start index must be less than the end index. Example: 0
+            end_index: The zero-based end index of the range to delete, exclusive. The end index must be greater than the start index. Example: 1
+            include_spreadsheet_in_response: Determines if the update response should include the spreadsheet resource. Example: True
+            response_include_grid_data: True if grid data should be returned. This parameter is ignored if a field mask was set in the request. Example: True
+            response_ranges: Limits the ranges of cells included in the response spreadsheet. Example: ["Sheet1!A1:B2", "Sheet2!C:C"]
 
         Returns:
             A dictionary containing the Google Sheets API response with update details
@@ -265,6 +269,16 @@ class GoogleSheetApp(APIApplication):
                 }
             ]
         }
+        
+        # Add optional response parameters if provided
+        if include_spreadsheet_in_response is not None:
+            request_body["includeSpreadsheetInResponse"] = include_spreadsheet_in_response
+        
+        if response_include_grid_data is not None:
+            request_body["responseIncludeGridData"] = response_include_grid_data
+        
+        if response_ranges is not None:
+            request_body["responseRanges"] = response_ranges
         
         response = self._post(url, data=request_body)
         return self._handle_response(response)
