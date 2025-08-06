@@ -1090,6 +1090,49 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def delete_sheet(
+        self,
+        spreadsheet_id: str,
+        sheet_id: int,
+    ) -> dict[str, Any]:
+        """
+        Tool to delete a sheet (worksheet) from a spreadsheet. use when you need to remove a specific sheet from a google sheet document.
+
+        Args:
+            spreadsheet_id: The ID of the spreadsheet from which to delete the sheet. Example: "abc123xyz789"
+            sheet_id: The ID of the sheet to delete. If the sheet is of DATA_SOURCE type, the associated DataSource is also deleted. Example: 123456789
+
+        Returns:
+            A dictionary containing the Google Sheets API response with update details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or sheet_id is negative
+
+        Tags:
+            delete, sheet, spreadsheet, worksheet, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if sheet_id < 0:
+            raise ValueError("sheet_id must be non-negative")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        request_body = {
+            "requests": [
+                {
+                    "deleteSheet": {
+                        "sheetId": sheet_id
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
     def list_tools(self):
         """Returns a list of methods exposed as tools."""
         return [
@@ -1100,6 +1143,7 @@ class GoogleSheetApp(APIApplication):
             self.append_dimensions,
             self.delete_dimensions,
             self.add_sheet,
+            self.delete_sheet,
             self.add_column_chart,
             self.add_table,
             self.clear_values,
