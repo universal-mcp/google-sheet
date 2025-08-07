@@ -1117,6 +1117,96 @@ class GoogleSheetApp(APIApplication):
         response = self._put(url, data=data, params=params)
         return self._handle_response(response)
 
+    def append_values(
+        self,
+        spreadsheet_id: str,
+        range: str,
+        value_input_option: str,
+        values: list[list[Any]],
+        major_dimension: str = None,
+        insert_data_option: str = None,
+        include_values_in_response: bool = None,
+        response_value_render_option: str = None,
+        response_date_time_render_option: str = None,
+    ) -> dict[str, Any]:
+        """
+        Tool to append values to a spreadsheet. use when you need to add new data to the end of an existing table in a google sheet.
+
+        Args:
+            spreadsheet_id: The ID of the spreadsheet to update. Example: "1q0gLhLdGXYZblahblahblah"
+            range: The A1 notation of a range to search for a logical table of data. Values are appended after the last row of the table. Example: "Sheet1!A1:B2"
+            value_input_option: How the input data should be interpreted. Required. Options: "RAW" or "USER_ENTERED". Example: "USER_ENTERED"
+            values: The data to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. Example: [["A1_val1", "A1_val2"], ["A2_val1", "A2_val2"]]
+            major_dimension: The major dimension of the values. For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]]. Options: "ROWS" or "COLUMNS". Example: "ROWS"
+            insert_data_option: How the input data should be inserted. Options: "OVERWRITE" or "INSERT_ROWS". Example: "INSERT_ROWS"
+            include_values_in_response: Determines if the update response should include the values of the cells that were appended. By default, responses do not include the updated values. Example: True
+            response_value_render_option: Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE. Options: "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA". Example: "FORMATTED_VALUE"
+            response_date_time_render_option: Determines how dates, times, and durations in the response should be rendered. This is ignored if responseValueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. Options: "SERIAL_NUMBER" or "FORMATTED_STRING". Example: "SERIAL_NUMBER"
+
+        Returns:
+            A dictionary containing the Google Sheets API response with append details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When required parameters are empty or invalid
+
+        Tags:
+            append, values, spreadsheet, data, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not range:
+            raise ValueError("range cannot be empty")
+        
+        if not value_input_option:
+            raise ValueError("value_input_option cannot be empty")
+        
+        if value_input_option not in ["RAW", "USER_ENTERED"]:
+            raise ValueError('value_input_option must be either "RAW" or "USER_ENTERED"')
+        
+        if not values or not isinstance(values, list) or len(values) == 0:
+            raise ValueError("values must be a non-empty 2D list")
+        
+        if major_dimension and major_dimension not in ["ROWS", "COLUMNS"]:
+            raise ValueError('major_dimension must be either "ROWS" or "COLUMNS"')
+        
+        if insert_data_option and insert_data_option not in ["OVERWRITE", "INSERT_ROWS"]:
+            raise ValueError('insert_data_option must be either "OVERWRITE" or "INSERT_ROWS"')
+        
+        if response_value_render_option and response_value_render_option not in ["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"]:
+            raise ValueError('response_value_render_option must be either "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA"')
+        
+        if response_date_time_render_option and response_date_time_render_option not in ["SERIAL_NUMBER", "FORMATTED_STRING"]:
+            raise ValueError('response_date_time_render_option must be either "SERIAL_NUMBER" or "FORMATTED_STRING"')
+        
+        url = f"{self.base_url}/{spreadsheet_id}/values/{range}:append"
+        
+        params = {
+            "valueInputOption": value_input_option
+        }
+        
+        # Add optional parameters if provided
+        if major_dimension:
+            params["majorDimension"] = major_dimension
+        
+        if insert_data_option:
+            params["insertDataOption"] = insert_data_option
+        
+        if include_values_in_response is not None:
+            params["includeValuesInResponse"] = include_values_in_response
+        
+        if response_value_render_option:
+            params["responseValueRenderOption"] = response_value_render_option
+        
+        if response_date_time_render_option:
+            params["responseDateTimeRenderOption"] = response_date_time_render_option
+        
+        data = {"values": values}
+        
+        response = self._post(url, data=data, params=params)
+        return self._handle_response(response)
+
     def clear_basic_filter(
         self,
         spreadsheet_id: str,
@@ -1444,7 +1534,7 @@ class GoogleSheetApp(APIApplication):
             self.get_table_schema,
             self.set_basic_filter,
             self.copy_to_sheet,
-
+            self.append_values,
 
             # Auto generated tools from openapi spec
             self.batch_clear_values,
