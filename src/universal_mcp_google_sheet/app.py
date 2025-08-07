@@ -1362,7 +1362,66 @@ class GoogleSheetApp(APIApplication):
             sample_size
         )
 
+    def set_basic_filter(
+        self,
+        spreadsheet_id: str,
+        filter: dict,
+    ) -> dict[str, Any]:
+        """
+        Tool to set a basic filter on a sheet in a google spreadsheet. use when you need to filter or sort data within a specific range on a sheet.
 
+        Args:
+            spreadsheet_id: The ID of the spreadsheet. Example: "abc123xyz789"
+            filter: The filter to set. This parameter is required. Contains:
+                - range: The range the filter covers (required)
+                    - sheetId: The sheet this range is on (required)
+                    - startRowIndex: The start row (inclusive) of the range (optional)
+                    - endRowIndex: The end row (exclusive) of the range (optional)
+                    - startColumnIndex: The start column (inclusive) of the range (optional)
+                    - endColumnIndex: The end column (exclusive) of the range (optional)
+                - sortSpecs: The sort specifications for the filter (optional)
+                    - dimensionIndex: The dimension the sort should be applied to
+                    - sortOrder: The order data should be sorted ("ASCENDING", "DESCENDING", "SORT_ORDER_UNSPECIFIED")
+
+        Returns:
+            A dictionary containing the Google Sheets API response with filter details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or filter is missing required fields
+
+        Tags:
+            filter, basic-filter, spreadsheet, sort, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not filter:
+            raise ValueError("filter cannot be empty")
+        
+        # Validate required filter fields
+        if "range" not in filter:
+            raise ValueError("filter must contain 'range' field")
+        
+        # Validate required filter fields using Google API naming convention
+        range_data = filter["range"]
+        if "sheetId" not in range_data:
+            raise ValueError("filter range must contain 'sheetId' field")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        request_body = {
+            "requests": [
+                {
+                    "setBasicFilter": {
+                        "filter": filter
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
 
 
     def list_tools(self):
@@ -1386,8 +1445,9 @@ class GoogleSheetApp(APIApplication):
             self.list_tables,
             self.get_values,
             self.get_table_schema,
+            self.set_basic_filter,
 
-            #Auto genearted tools from openapi spec
+            # Auto generated tools from openapi spec
             self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
             self.copy_to_sheet,
