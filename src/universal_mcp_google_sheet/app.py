@@ -777,109 +777,37 @@ class GoogleSheetApp(APIApplication):
 
 
 
-    def get_values_by_data_filter(
+
+
+    def batch_get_values_by_data_filter(
         self,
         spreadsheet_id: str,
         data_filters: list[dict],
-        include_grid_data: bool = None,
-        exclude_tables_in_banded_ranges: bool = None,
+        major_dimension: str = None,
+        value_render_option: str = None,
+        date_time_render_option: str = None,
     ) -> dict[str, Any]:
         """
-        Returns the spreadsheet at the given id, filtered by the specified data filters. use this tool when you need to retrieve specific subsets of data from a google sheet based on criteria like a1 notation, developer metadata, or grid ranges.
+        Tool to return one or more ranges of values from a spreadsheet that match the specified data filters. use when you need to retrieve specific data sets based on filtering criteria rather than entire sheets or fixed ranges.
 
         Args:
-            spreadsheet_id: The ID of the spreadsheet to request. Example: "abc123xyz789"
-            data_filters: The DataFilters used to select which ranges to retrieve. Each filter can contain:
-                - a1Range: Selects data that matches the specified A1 range. Example: "Sheet1!A1:B2"
-                - gridRange: Selects data that matches the range described by the GridRange with:
-                    - sheetId: The ID of the sheet this range is on. Example: 0
-                    - startRowIndex: The start row (0-based, inclusive) of the range. Example: 0
-                    - endRowIndex: The end row (0-based, exclusive) of the range. Example: 10
-                    - startColumnIndex: The start column (0-based, inclusive) of the range. Example: 0
-                    - endColumnIndex: The end column (0-based, exclusive) of the range. Example: 5
-                - developerMetadataLookup: Selects data associated with developer metadata with:
-                    - locationType: Limits metadata to specific location types (ROW, COLUMN, SHEET, SPREADSHEET, OBJECT). Example: "ROW"
-                    - metadataLocation: Limits metadata to specific locations with exact or intersecting matching
-                    - locationMatchingStrategy: Determines location matching (EXACT_LOCATION, INTERSECTING_LOCATION). Example: "INTERSECTING_LOCATION"
-                    - metadataId: Filter by metadata ID. Example: 123
-                    - metadataKey: Filter by metadata key. Example: "project_id"
-                    - metadataValue: Filter by metadata value. Example: "alpha"
-                    - visibility: Metadata visibility (DOCUMENT, PROJECT). Example: "DOCUMENT"
-
-                Example:
-                
-                Filter by GridRange:-
-                 {
-                   "dataFilters": [
-                     {
-                       "gridRange": {
-                         "sheetId": 0,  # Assuming your sheet ID is 0 (the first sheet)
-                         "startRowIndex": 0,
-                         "endRowIndex": 10,
-                         "startColumnIndex": 0,
-                         "endColumnIndex": 2
-                       }
-                     }
-                   ]
-                 }
-
-                Filter by A1Range:-
-                {
-                  "dataFilters": [
-                    {
-                      "a1Range": "Sheet1!A1:B10"  # Filters for data within cells A1 to B10 on "Sheet1".
-                    }
-                  ]
-                }
-
-                Filter by Developer Metadata:-
-                {
-                  "dataFilters": [
-                    {
-                      "developerMetadataLookup": {
-                        "locationType": "ROW",
-                        "locationMatchingStrategy": "INTERSECTING_LOCATION",
-                        "metadataKey": "project_id",
-                        "metadataValue": "alpha",
-                        "visibility": "DOCUMENT"
-                      }
-                    }
-                  ]
-                }
-
-                Filter by Multiple Criteria:-
-                {
-                  "dataFilters": [
-                    {
-                      "a1Range": "Sheet1!A1:B10"
-                    },
-                    {
-                      "developerMetadataLookup": {
-                        "metadataKey": "productId",
-                        "metadataValue": "XYZ123",
-                        "visibility": "DOCUMENT"
-                      }
-                    }
-                  ]
-                }
-                
-
-            include_grid_data: True if grid data should be returned. Ignored if a field mask is set. Example: True
-            exclude_tables_in_banded_ranges: True if tables should be excluded in the banded ranges. False if not set. Example: False
-                
-                
-        
-
+            spreadsheet_id: The ID of the spreadsheet to retrieve data from. Example: "1q2w3e4r5t6y7u8i9o0p"
+            data_filters: The data filters used to match the ranges of values to retrieve. Ranges that match any of the specified data filters are included in the response. Each filter can contain:
+                - a1Range: Selects data that matches the specified A1 range. Example: "Sheet1!A1:B5"
+                - gridRange: Selects data that matches the specified grid range. Example: {"sheetId": 0, "startRowIndex": 0, "endRowIndex": 5, "startColumnIndex": 0, "endColumnIndex": 2}
+            major_dimension: The major dimension that results should use. For example, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then a request that selects that range and sets majorDimension=ROWS returns [[1,2],[3,4]], whereas a request that sets majorDimension=COLUMNS returns [[1,3],[2,4]]. Options: "ROWS" or "COLUMNS". Example: "ROWS"
+            value_render_option: How values should be represented in the output. The default render option is FORMATTED_VALUE. Options: "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA". Example: "FORMATTED_VALUE"
+            date_time_render_option: How dates, times, and durations should be represented in the output. This is ignored if valueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. Options: "SERIAL_NUMBER" or "FORMATTED_STRING". Example: "SERIAL_NUMBER"
 
         Returns:
-            A dictionary containing the filtered spreadsheet data based on the specified criteria
+            A dictionary containing the filtered values that match the specified data filters
 
         Raises:
             HTTPError: When the API request fails due to invalid parameters or insufficient permissions
             ValueError: When spreadsheet_id is empty or data_filters is empty
 
         Tags:
-            get, filter, spreadsheet, data-filter, important
+            get, batch, data-filter, values, spreadsheet, important
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -887,18 +815,30 @@ class GoogleSheetApp(APIApplication):
         if not data_filters or not isinstance(data_filters, list) or len(data_filters) == 0:
             raise ValueError("data_filters must be a non-empty list")
         
-        url = f"{self.base_url}/{spreadsheet_id}:getByDataFilter"
+        if major_dimension and major_dimension not in ["ROWS", "COLUMNS"]:
+            raise ValueError('major_dimension must be either "ROWS" or "COLUMNS"')
+        
+        if value_render_option and value_render_option not in ["FORMATTED_VALUE", "UNFORMATTED_VALUE", "FORMULA"]:
+            raise ValueError('value_render_option must be either "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA"')
+        
+        if date_time_render_option and date_time_render_option not in ["SERIAL_NUMBER", "FORMATTED_STRING"]:
+            raise ValueError('date_time_render_option must be either "SERIAL_NUMBER" or "FORMATTED_STRING"')
+        
+        url = f"{self.base_url}/{spreadsheet_id}/values:batchGetByDataFilter"
         
         request_body = {
             "dataFilters": data_filters
         }
         
         # Add optional parameters if provided
-        if include_grid_data is not None:
-            request_body["includeGridData"] = include_grid_data
+        if major_dimension:
+            request_body["majorDimension"] = major_dimension
         
-        if exclude_tables_in_banded_ranges is not None:
-            request_body["excludeTablesInBandedRanges"] = exclude_tables_in_banded_ranges
+        if value_render_option:
+            request_body["valueRenderOption"] = value_render_option
+        
+        if date_time_render_option:
+            request_body["dateTimeRenderOption"] = date_time_render_option
         
         response = self._post(url, data=request_body)
         return self._handle_response(response)
@@ -1421,7 +1361,6 @@ class GoogleSheetApp(APIApplication):
             self.update_values,
             self.batch_update,
             self.clear_basic_filter,
-            self.get_values_by_data_filter,  
             self.list_tables,
             self.get_values,
             self.get_table_schema,
@@ -1429,6 +1368,7 @@ class GoogleSheetApp(APIApplication):
             self.copy_to_sheet,
             self.append_values,
             self.batch_clear_values,
+            self.batch_get_values_by_data_filter,
 
 
             
