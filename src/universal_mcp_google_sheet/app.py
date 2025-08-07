@@ -474,7 +474,8 @@ class GoogleSheetApp(APIApplication):
         chart_title: str,
         domain_range: dict,
         series_ranges: list[dict],
-        new_sheet: bool = True,
+        new_sheet: bool = False,
+        chart_position: dict = None,
     ) -> dict[str, Any]:
         """
         Adds a column chart to a Google Spreadsheet.
@@ -489,6 +490,8 @@ class GoogleSheetApp(APIApplication):
             domain_range: Dictionary containing domain range info (e.g., {"startRowIndex": 0, "endRowIndex": 7, "startColumnIndex": 0, "endColumnIndex": 1})
             series_ranges: List of dictionaries containing series range info for each data series
             new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
+            chart_position: Optional positioning for chart when new_sheet=False. 
+                          Example: {"overlayPosition": {"anchorCell": {"sheetId": 0, "rowIndex": 10, "columnIndex": 5}, "widthPixels": 600, "heightPixels": 400}}
 
         Returns:
             A dictionary containing the Google Sheets API response with the chart details
@@ -566,6 +569,29 @@ class GoogleSheetApp(APIApplication):
             }
             chart_spec["basicChart"]["series"].append(series)
         
+        # Build the position specification
+        if new_sheet:
+            position_spec = {"newSheet": True}
+        else:
+            # For existing sheet, use overlayPosition structure
+            if chart_position:
+                position_spec = chart_position
+            else:
+                # Default positioning when placing in existing sheet
+                position_spec = {
+                    "overlayPosition": {
+                        "anchorCell": {
+                            "sheetId": source_sheet_id,
+                            "rowIndex": 0,
+                            "columnIndex": 0
+                        },
+                        "offsetXPixels": 0,
+                        "offsetYPixels": 0,
+                        "widthPixels": 600,
+                        "heightPixels": 400
+                    }
+                }
+        
         # Build the request body
         request_body = {
             "requests": [
@@ -573,9 +599,7 @@ class GoogleSheetApp(APIApplication):
                     "addChart": {
                         "chart": {
                             "spec": chart_spec,
-                            "position": {
-                                "newSheet": new_sheet
-                            }
+                            "position": position_spec
                         }
                     }
                 }
