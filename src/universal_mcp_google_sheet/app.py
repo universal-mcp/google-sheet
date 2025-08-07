@@ -467,11 +467,12 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
-    def add_column_chart(
+    def add_basic_chart(
         self,
         spreadsheet_id: str,
         source_sheet_id: int,
         chart_title: str,
+        chart_type: str,
         domain_range: dict,
         series_ranges: list[dict],
         new_sheet: bool = False,
@@ -480,15 +481,16 @@ class GoogleSheetApp(APIApplication):
         y_axis_title: str = None,
     ) -> dict[str, Any]:
         """
-        Adds a column chart to a Google Spreadsheet.
+        Adds a basic chart to a Google Spreadsheet like a column chart, bar chart, line chart and  area chart.
 
-        This function creates a column chart from the specified data ranges and places it in a new sheet or existing sheet.
-        Use this when you need to visualize data in a column chart format.
+        This function creates various types of charts from the specified data ranges and places it in a new sheet or existing sheet.
+        Use this when you need to visualize data in different chart formats.
 
         Args:
             spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
             source_sheet_id: The ID of the sheet containing the source data
             chart_title: The title for the chart
+            chart_type: The type of chart to create. Supported types: "COLUMN", "BAR", "LINE", "AREA", "STEPPED_AREA", "SCATTER", "COMBO"
             domain_range: Dictionary containing domain range info (e.g., {"startRowIndex": 0, "endRowIndex": 7, "startColumnIndex": 0, "endColumnIndex": 1})
             series_ranges: List of dictionaries containing series range info for each data series
             new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
@@ -505,7 +507,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
-            add, chart, column, visualization, important
+            add, chart, basic-chart, visualization, important
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -519,7 +521,7 @@ class GoogleSheetApp(APIApplication):
         chart_spec = {
             "title": chart_title,
             "basicChart": {
-                "chartType": "COLUMN",
+                "chartType": chart_type,
                 "legendPosition": "BOTTOM_LEGEND",
                 "axis": [
                     {
@@ -1620,7 +1622,7 @@ class GoogleSheetApp(APIApplication):
             self.delete_dimensions,
             self.add_sheet,
             self.delete_sheet,
-            self.add_column_chart,
+            self.add_basic_chart,
             self.add_table,
             self.clear_values,
             self.update_values,
