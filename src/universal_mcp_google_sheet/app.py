@@ -38,7 +38,7 @@ class GoogleSheetApp(APIApplication):
 
     def get_spreadsheet(self, spreadsheet_id: str) -> dict[str, Any]:
         """
-        Retrieves detailed information about a specific Google Spreadsheet using its ID.
+        Retrieves detailed information about a specific Google Spreadsheet using its ID  excluding cell data.
 
         Args:
             spreadsheet_id: The unique identifier of the Google Spreadsheet to retrieve (found in the spreadsheet's URL)
@@ -828,116 +828,131 @@ class GoogleSheetApp(APIApplication):
         response.raise_for_status()
         return response.json()
 
-    def get_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None, dateTimeRenderOption=None, majorDimension=None, valueRenderOption=None) -> Any:
+    def get_values_by_data_filter(
+        self,
+        spreadsheet_id: str,
+        data_filters: list[dict],
+        include_grid_data: bool = None,
+        exclude_tables_in_banded_ranges: bool = None,
+    ) -> dict[str, Any]:
         """
-        Get Values By Data Filter
+        Returns the spreadsheet at the given id, filtered by the specified data filters. use this tool when you need to retrieve specific subsets of data from a google sheet based on criteria like a1 notation, developer metadata, or grid ranges.
 
         Args:
-            spreadsheetId (string): spreadsheetId
-            access_token (string): OAuth access token. Example: '{{accessToken}}'.
-            alt (string): Data format for response. Example: '{{alt}}'.
-            callback (string): JSONP Example: '{{callback}}'.
-            fields (string): Selector specifying which fields to include in a partial response. Example: '{{fields}}'.
-            key (string): API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token. Example: '{{key}}'.
-            oauth_token (string): OAuth 2.0 token for the current user. Example: '{{oauthToken}}'.
-            prettyPrint (string): Returns response with indentations and line breaks. Example: '{{prettyPrint}}'.
-            quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
-            upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
-            uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
-            dataFilters (array): dataFilters Example: "[{'a1Range': 'eiusmod anim enim culpa', 'developerMetadataLookup': {'locationMatchingStrategy': 'INTERSECTING_LOCATION', 'locationType': 'SPREADSHEET', 'metadataId': -64798951, 'metadataKey': 'sint minim commodo', 'metadataLocation': {'dimensionRange': {'dimension': 'ROWS', 'endIndex': 34518543, 'sheetId': 68337575, 'startIndex': 91706381}, 'locationType': 'ROW', 'sheetId': -33783740, 'spreadsheet': True}, 'metadataValue': 'sunt', 'visibility': 'DEVELOPER_METADATA_VISIBILITY_UNSPECIFIED'}, 'gridRange': {'endColumnIndex': -96821047, 'endRowIndex': -9277805, 'sheetId': 7522437, 'startColumnIndex': 85603635, 'startRowIndex': -31384652}}, {'a1Range': 'sunt irure dolor', 'developerMetadataLookup': {'locationMatchingStrategy': 'DEVELOPER_METADATA_LOCATION_MATCHING_STRATEGY_UNSPECIFIED', 'locationType': 'SHEET', 'metadataId': 26360577, 'metadataKey': 'in minim nulla aliquip laboris', 'metadataLocation': {'dimensionRange': {'dimension': 'COLUMNS', 'endIndex': -14426665, 'sheetId': 88787400, 'startIndex': -98846780}, 'locationType': 'COLUMN', 'sheetId': -14062757, 'spreadsheet': True}, 'metadataValue': 'proident au', 'visibility': 'DOCUMENT'}, 'gridRange': {'endColumnIndex': -11696202, 'endRowIndex': -87528654, 'sheetId': 32991035, 'startColumnIndex': -95148112, 'startRowIndex': -72465558}}]".
-            dateTimeRenderOption (string): dateTimeRenderOption Example: 'FORMATTED_STRING'.
-            majorDimension (string): majorDimension Example: 'DIMENSION_UNSPECIFIED'.
-            valueRenderOption (string): valueRenderOption
+            spreadsheet_id: The ID of the spreadsheet to request. Example: "abc123xyz789"
+            data_filters: The DataFilters used to select which ranges to retrieve. Each filter can contain:
+                - a1Range: Selects data that matches the specified A1 range. Example: "Sheet1!A1:B2"
+                - gridRange: Selects data that matches the range described by the GridRange with:
+                    - sheetId: The ID of the sheet this range is on. Example: 0
+                    - startRowIndex: The start row (0-based, inclusive) of the range. Example: 0
+                    - endRowIndex: The end row (0-based, exclusive) of the range. Example: 10
+                    - startColumnIndex: The start column (0-based, inclusive) of the range. Example: 0
+                    - endColumnIndex: The end column (0-based, exclusive) of the range. Example: 5
+                - developerMetadataLookup: Selects data associated with developer metadata with:
+                    - locationType: Limits metadata to specific location types (ROW, COLUMN, SHEET, SPREADSHEET, OBJECT). Example: "ROW"
+                    - metadataLocation: Limits metadata to specific locations with exact or intersecting matching
+                    - locationMatchingStrategy: Determines location matching (EXACT_LOCATION, INTERSECTING_LOCATION). Example: "INTERSECTING_LOCATION"
+                    - metadataId: Filter by metadata ID. Example: 123
+                    - metadataKey: Filter by metadata key. Example: "project_id"
+                    - metadataValue: Filter by metadata value. Example: "alpha"
+                    - visibility: Metadata visibility (DOCUMENT, PROJECT). Example: "DOCUMENT"
+
                 Example:
-                ```json
+                
+                Filter by GridRange:-
+                 {
+                   "dataFilters": [
+                     {
+                       "gridRange": {
+                         "sheetId": 0,  # Assuming your sheet ID is 0 (the first sheet)
+                         "startRowIndex": 0,
+                         "endRowIndex": 10,
+                         "startColumnIndex": 0,
+                         "endColumnIndex": 2
+                       }
+                     }
+                   ]
+                 }
+
+                Filter by A1Range:-
                 {
                   "dataFilters": [
                     {
-                      "a1Range": "eiusmod anim enim culpa",
-                      "developerMetadataLookup": {
-                        "locationMatchingStrategy": "INTERSECTING_LOCATION",
-                        "locationType": "SPREADSHEET",
-                        "metadataId": -64798951,
-                        "metadataKey": "sint minim commodo",
-                        "metadataLocation": {
-                          "dimensionRange": {
-                            "dimension": "ROWS",
-                            "endIndex": 34518543,
-                            "sheetId": 68337575,
-                            "startIndex": 91706381
-                          },
-                          "locationType": "ROW",
-                          "sheetId": -33783740,
-                          "spreadsheet": true
-                        },
-                        "metadataValue": "sunt",
-                        "visibility": "DEVELOPER_METADATA_VISIBILITY_UNSPECIFIED"
-                      },
-                      "gridRange": {
-                        "endColumnIndex": -96821047,
-                        "endRowIndex": -9277805,
-                        "sheetId": 7522437,
-                        "startColumnIndex": 85603635,
-                        "startRowIndex": -31384652
-                      }
-                    },
+                      "a1Range": "Sheet1!A1:B10"  # Filters for data within cells A1 to B10 on "Sheet1".
+                    }
+                  ]
+                }
+
+                Filter by Developer Metadata:-
+                {
+                  "dataFilters": [
                     {
-                      "a1Range": "sunt irure dolor",
                       "developerMetadataLookup": {
-                        "locationMatchingStrategy": "DEVELOPER_METADATA_LOCATION_MATCHING_STRATEGY_UNSPECIFIED",
-                        "locationType": "SHEET",
-                        "metadataId": 26360577,
-                        "metadataKey": "in minim nulla aliquip laboris",
-                        "metadataLocation": {
-                          "dimensionRange": {
-                            "dimension": "COLUMNS",
-                            "endIndex": -14426665,
-                            "sheetId": 88787400,
-                            "startIndex": -98846780
-                          },
-                          "locationType": "COLUMN",
-                          "sheetId": -14062757,
-                          "spreadsheet": true
-                        },
-                        "metadataValue": "proident au",
+                        "locationType": "ROW",
+                        "locationMatchingStrategy": "INTERSECTING_LOCATION",
+                        "metadataKey": "project_id",
+                        "metadataValue": "alpha",
                         "visibility": "DOCUMENT"
-                      },
-                      "gridRange": {
-                        "endColumnIndex": -11696202,
-                        "endRowIndex": -87528654,
-                        "sheetId": 32991035,
-                        "startColumnIndex": -95148112,
-                        "startRowIndex": -72465558
                       }
                     }
-                  ],
-                  "dateTimeRenderOption": "FORMATTED_STRING",
-                  "majorDimension": "DIMENSION_UNSPECIFIED",
-                  "valueRenderOption": "FORMULA"
+                  ]
                 }
-                ```
+
+                Filter by Multiple Criteria:-
+                {
+                  "dataFilters": [
+                    {
+                      "a1Range": "Sheet1!A1:B10"
+                    },
+                    {
+                      "developerMetadataLookup": {
+                        "metadataKey": "productId",
+                        "metadataValue": "XYZ123",
+                        "visibility": "DOCUMENT"
+                      }
+                    }
+                  ]
+                }
+                
+
+            include_grid_data: True if grid data should be returned. Ignored if a field mask is set. Example: True
+            exclude_tables_in_banded_ranges: True if tables should be excluded in the banded ranges. False if not set. Example: False
+                
+                
+        
+
 
         Returns:
-            Any: Successful response
+            A dictionary containing the filtered spreadsheet data based on the specified criteria
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or data_filters is empty
 
         Tags:
-            Batch Values Update
+            get, filter, spreadsheet, data-filter, important
         """
-        if spreadsheetId is None:
-            raise ValueError("Missing required parameter 'spreadsheetId'")
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not data_filters or not isinstance(data_filters, list) or len(data_filters) == 0:
+            raise ValueError("data_filters must be a non-empty list")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:getByDataFilter"
+        
         request_body = {
-            'dataFilters': dataFilters,
-            'dateTimeRenderOption': dateTimeRenderOption,
-            'majorDimension': majorDimension,
-            'valueRenderOption': valueRenderOption,
+            "dataFilters": data_filters
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/{spreadsheetId}/values:batchGetByDataFilter"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
+        
+        # Add optional parameters if provided
+        if include_grid_data is not None:
+            request_body["includeGridData"] = include_grid_data
+        
+        if exclude_tables_in_banded_ranges is not None:
+            request_body["excludeTablesInBandedRanges"] = exclude_tables_in_banded_ranges
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
 
     def copy_to_sheet(self, spreadsheetId, sheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, destinationSpreadsheetId=None) -> dict[str, Any]:
         """
@@ -1150,10 +1165,11 @@ class GoogleSheetApp(APIApplication):
             self.update_values,
             self.batch_update,
             self.clear_basic_filter,
+            self.get_values_by_data_filter,  
+
             #Auto genearted tools from openapi spec
             self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
-            self.get_values_by_data_filter,  
             self.copy_to_sheet,
             
         ]
