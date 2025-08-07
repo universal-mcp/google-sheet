@@ -2,7 +2,7 @@ from typing import Any
 
 from universal_mcp.applications.application import APIApplication
 from universal_mcp.integrations import Integration
-from universal_mcp_google_sheet.helper import analyze_sheet_for_tables
+from universal_mcp_google_sheet.helper import analyze_sheet_for_tables, analyze_table_schema
 
 
 class GoogleSheetApp(APIApplication):
@@ -1277,6 +1277,92 @@ class GoogleSheetApp(APIApplication):
             }
         }
     
+    def get_table_schema(
+        self,
+        spreadsheet_id: str,
+        table_name: str,
+        sheet_name: str = None,
+        sample_size: int = 50,
+    ) -> dict[str, Any]:
+        """
+        Analyzes table structure and infers column names, types, and constraints.
+        Uses statistical analysis of sample data to determine the most likely data type for each column.
+        Call this action after calling the list tables action to get the schema of a table in a spreadsheet.
+
+        Args:
+            spreadsheet_id: Google Sheets ID from the URL (e.g., '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms')
+            table_name: Specific table name from LIST_TABLES response (e.g., 'Sales_Data', 'Employee_List'). Use 'auto' to analyze the largest/most prominent table
+            sheet_name: Sheet/tab name if table_name is ambiguous across multiple sheets
+            sample_size: Number of rows to sample for type inference (1-1000, default 50)
+
+        Returns:
+            A dictionary containing the table schema with column names, types, and constraints
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty, table_name is empty, or sample_size is invalid
+
+        Tags:
+            schema, analyze, table, structure, types, columns, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not table_name:
+            raise ValueError("table_name cannot be empty")
+        
+        if not 1 <= sample_size <= 1000:
+            raise ValueError("sample_size must be between 1 and 1000")
+        
+        # Get spreadsheet structure
+        spreadsheet = self.get_spreadsheet(spreadsheet_id)
+        
+        # Find the target table
+        target_table = None
+        
+        for sheet in spreadsheet.get("sheets", []):
+            sheet_properties = sheet.get("properties", {})
+            sheet_title = sheet_properties.get("title", "Sheet1")
+            
+            # If sheet_name is specified, only look in that sheet
+            if sheet_name and sheet_title != sheet_name:
+                continue
+            
+            # Get tables in this sheet
+            sheet_tables = analyze_sheet_for_tables(
+                self.get_values,
+                spreadsheet_id,
+                sheet_properties.get("sheetId", 0),
+                sheet_title,
+                min_rows=2,
+                min_columns=1,
+                min_confidence=0.3
+            )
+            
+            for table in sheet_tables:
+                if table_name == "auto":
+                    # For auto mode, select the largest table
+                    if target_table is None or (table["rows"] * table["columns"] > target_table["rows"] * target_table["columns"]):
+                        target_table = table
+                elif table["table_name"] == table_name:
+                    target_table = table
+                    break
+            
+            if target_table and table_name != "auto":
+                break
+        
+        if not target_table:
+            raise ValueError(f"Table '{table_name}' not found in spreadsheet")
+        
+        # Use the helper function to analyze the table schema
+        return analyze_table_schema(
+            self.get_values,
+            spreadsheet_id,
+            target_table,
+            sample_size
+        )
+
+
 
 
     def list_tools(self):
@@ -1299,6 +1385,7 @@ class GoogleSheetApp(APIApplication):
             self.get_values_by_data_filter,  
             self.list_tables,
             self.get_values,
+            self.get_table_schema,
 
             #Auto genearted tools from openapi spec
             self.batch_clear_values,

@@ -2,7 +2,7 @@
 Helper functions for Google Sheets table detection and analysis.
 """
 
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Tuple
 
 
 def analyze_sheet_for_tables(
@@ -57,6 +57,143 @@ def analyze_sheet_for_tables(
         pass
     
     return tables
+
+
+def analyze_table_schema(
+    get_values_func,
+    spreadsheet_id: str,
+    table_info: Dict,
+    sample_size: int = 50
+) -> Dict[str, Any]:
+    """
+    Analyze table structure and infer column names, types, and constraints.
+    
+    Args:
+        get_values_func: Function to get values from spreadsheet
+        spreadsheet_id: The spreadsheet ID
+        table_info: Dictionary containing table information from list_tables
+        sample_size: Number of rows to sample for type inference
+    
+    Returns:
+        Dictionary containing the table schema with column analysis
+    """
+    try:
+        # Get sample data from the table
+        sample_range = table_info["range"]
+        sample_data = get_values_func(
+            spreadsheetId=spreadsheet_id,
+            range=sample_range
+        )
+        
+        values = sample_data.get("values", [])
+        if not values:
+            raise ValueError("No data found in the specified table")
+        
+        # Limit sample size to available data
+        actual_sample_size = min(sample_size, len(values))
+        sample_values = values[:actual_sample_size]
+        
+        # Analyze column structure
+        columns = analyze_columns(sample_values)
+        
+        return {
+            "spreadsheet_id": spreadsheet_id,
+            "table_name": table_info["table_name"],
+            "sheet_name": table_info["sheet_name"],
+            "table_range": table_info["range"],
+            "total_rows": table_info["rows"],
+            "total_columns": table_info["columns"],
+            "sample_size": actual_sample_size,
+            "columns": columns,
+            "schema_version": "1.0"
+        }
+        
+    except Exception as e:
+        raise ValueError(f"Failed to analyze table schema: {str(e)}")
+
+
+def analyze_columns(sample_values: List[List[Any]]) -> List[Dict]:
+    """Analyze column structure and infer types."""
+    if not sample_values:
+        return []
+    
+    # Get headers (first row)
+    headers = sample_values[0] if sample_values else []
+    data_rows = sample_values[1:] if len(sample_values) > 1 else []
+    
+    columns = []
+    
+    for col_idx in range(len(headers)):
+        column_name = str(headers[col_idx]) if col_idx < len(headers) else f"Column_{col_idx + 1}"
+        
+        # Extract column values
+        column_values = []
+        for row in data_rows:
+            if col_idx < len(row):
+                column_values.append(row[col_idx])
+        
+        # Analyze column type
+        column_type, constraints = infer_column_type(column_values)
+        
+        column_info = {
+            "name": column_name,
+            "index": col_idx,
+            "type": column_type,
+            "constraints": constraints,
+            "sample_values": column_values[:5],  # First 5 sample values
+            "null_count": sum(1 for val in column_values if not val or str(val).strip() == ""),
+            "unique_count": len(set(str(val) for val in column_values if val and str(val).strip()))
+        }
+        
+        columns.append(column_info)
+    
+    return columns
+
+
+def infer_column_type(values: List[Any]) -> Tuple[str, Dict]:
+    """Infer the most likely data type for a column."""
+    if not values:
+        return "TEXT", {}
+    
+    # Remove empty values
+    non_empty_values = [val for val in values if val and str(val).strip()]
+    
+    if not non_empty_values:
+        return "TEXT", {}
+    
+    # Check for boolean values
+    boolean_count = sum(1 for val in non_empty_values if str(val).lower() in ['true', 'false', 'yes', 'no', '1', '0'])
+    if boolean_count / len(non_empty_values) >= 0.8:
+        return "BOOLEAN", {}
+    
+    # Check for numeric values
+    numeric_count = 0
+    decimal_count = 0
+    date_count = 0
+    
+    for val in non_empty_values:
+        val_str = str(val)
+        
+        # Check for dates (basic patterns)
+        if any(pattern in val_str.lower() for pattern in ['/', '-', 'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']):
+            date_count += 1
+        
+        # Check for numbers
+        if val_str.replace('.', '').replace('-', '').replace(',', '').isdigit():
+            numeric_count += 1
+            if '.' in val_str:
+                decimal_count += 1
+    
+    # Determine type based on analysis
+    if date_count / len(non_empty_values) >= 0.6:
+        return "DATE", {}
+    elif numeric_count / len(non_empty_values) >= 0.8:
+        if decimal_count / numeric_count >= 0.3:
+            return "DECIMAL", {"precision": 2}
+        else:
+            return "INTEGER", {}
+    else:
+        return "TEXT", {}
 
 
 def find_table_regions(values: List[List], min_rows: int, min_columns: int) -> List[Dict]:
