@@ -1012,51 +1012,48 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
-    def copy_to_sheet(self, spreadsheetId, sheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, destinationSpreadsheetId=None) -> dict[str, Any]:
+    def copy_to_sheet(
+        self,
+        spreadsheet_id: str,
+        sheet_id: int,
+        destination_spreadsheet_id: str,
+    ) -> dict[str, Any]:
         """
-        Copy To Sheet
+        Tool to copy a single sheet from a spreadsheet to another spreadsheet. Use when you need to duplicate a sheet into a different spreadsheet.
+        
 
         Args:
-            spreadsheetId (string): spreadsheetId
-            {sheetId (string): {sheetId
-            access_token (string): OAuth access token. Example: '{{accessToken}}'.
-            alt (string): Data format for response. Example: '{{alt}}'.
-            callback (string): JSONP Example: '{{callback}}'.
-            fields (string): Selector specifying which fields to include in a partial response. Example: '{{fields}}'.
-            key (string): API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token. Example: '{{key}}'.
-            oauth_token (string): OAuth 2.0 token for the current user. Example: '{{oauthToken}}'.
-            prettyPrint (string): Returns response with indentations and line breaks. Example: '{{prettyPrint}}'.
-            quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
-            upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
-            uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
-            destinationSpreadsheetId (string): destinationSpreadsheetId
-                Example:
-                ```json
-                {
-                  "destinationSpreadsheetId": "eu fugiat"
-                }
-                ```
+            spreadsheet_id: The ID of the spreadsheet containing the sheet to copy. Example: "1qZ_..."
+            sheet_id: The ID of the sheet to copy. Example: 0
+            destination_spreadsheet_id: The ID of the spreadsheet to copy the sheet to. Example: "2rY_..."
 
         Returns:
-            dict[str, Any]: Successful response
+            A dictionary containing the Google Sheets API response with copy details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When any required parameter is empty or invalid
 
         Tags:
-            Sheets
+            copy, sheet, spreadsheet, duplicate, important
         """
-        if spreadsheetId is None:
-            raise ValueError("Missing required parameter 'spreadsheetId'")
-        if sheetId is None:
-            raise ValueError("Missing required parameter '{sheetId'")
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if sheet_id is None:
+            raise ValueError("sheet_id cannot be empty")
+        
+        if not destination_spreadsheet_id:
+            raise ValueError("destination_spreadsheet_id cannot be empty")
+        
+        url = f"{self.base_url}/{spreadsheet_id}/sheets/{sheet_id}:copyTo"
+        
         request_body = {
-            'destinationSpreadsheetId': destinationSpreadsheetId,
+            "destinationSpreadsheetId": destination_spreadsheet_id
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/{spreadsheetId}/sheets/{{sheetId}}:copyTo"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
     
     def batch_update(
         self,
@@ -1446,10 +1443,11 @@ class GoogleSheetApp(APIApplication):
             self.get_values,
             self.get_table_schema,
             self.set_basic_filter,
+            self.copy_to_sheet,
+
 
             # Auto generated tools from openapi spec
             self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
-            self.copy_to_sheet,
             
         ]
