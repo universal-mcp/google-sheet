@@ -118,7 +118,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: If the spreadsheet_id is empty or invalid
 
         Tags:
-            get, batch, read, spreadsheet, values, important
+            get, batch, read, spreadsheet, values
         """
         url = f"{self.base_url}/{spreadsheet_id}/values:batchGet"
         params = {}
@@ -393,7 +393,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
-            add, sheet, spreadsheet, create, important
+            add, sheet, spreadsheet, create
         """
         if not spreadsheetId:
             raise ValueError("spreadsheetId cannot be empty")
@@ -506,7 +506,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
-            add, chart, basic-chart, visualization, important
+            add, chart, basic-chart, visualization
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -649,7 +649,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
-            add, chart, pie, visualization, important
+            add, chart, pie, visualization
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -787,7 +787,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or invalid parameters are provided
 
         Tags:
-            add, table, structured-data, important
+            add, table, structured-data
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -916,7 +916,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or ranges is empty
 
         Tags:
-            clear, batch, values, spreadsheet, important
+            clear, batch, values, spreadsheet
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -965,7 +965,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or data_filters is empty
 
         Tags:
-            get, batch, data-filter, values, spreadsheet, important
+            get, batch, data-filter, values, spreadsheet
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -1024,7 +1024,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When any required parameter is empty or invalid
 
         Tags:
-            copy, sheet, spreadsheet, duplicate, important
+            copy, sheet, spreadsheet, duplicate
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -1218,7 +1218,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or sheet_id is negative
 
         Tags:
-            clear, filter, basic-filter, spreadsheet, important
+            clear, filter, basic-filter, spreadsheet
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -1261,7 +1261,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty or sheet_id is negative
 
         Tags:
-            delete, sheet, spreadsheet, worksheet, important
+            delete, sheet, spreadsheet, worksheet
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -1381,7 +1381,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty, table_name is empty, or sample_size is invalid
 
         Tags:
-            schema, analyze, table, structure, types, columns, important
+            schema, analyze, table, structure, types, columns
         """
         if not spreadsheet_id:
             raise ValueError("spreadsheet_id cannot be empty")
@@ -1590,7 +1590,7 @@ class GoogleSheetApp(APIApplication):
             ValueError: When spreadsheet_id is empty, indices are invalid, or color values are out of range
 
         Tags:
-            format, cells, styling, text-formatting, background-color, borders, alignment, merge, important
+            format, cells, styling, text-formatting, background-color, borders, alignment, merge
         """
         if not spreadsheetId:
             raise ValueError("spreadsheetId cannot be empty")
