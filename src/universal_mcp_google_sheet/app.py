@@ -1066,12 +1066,13 @@ class GoogleSheetApp(APIApplication):
     ) -> dict[str, Any]:
         """
         Updates a specified range in a google sheet with given values, or appends them as new rows if `first cell location` is omitted; ensure the target sheet exists and the spreadsheet contains at least one worksheet.
+        Use this tool for basic updates/append. Overwrites existing data when appending.
 
         Args:
             spreadsheet_id: The unique identifier of the Google Sheets spreadsheet to be updated. Example: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
             sheet_name: The name of the specific sheet within the spreadsheet to update. Example: "Sheet1"
             values: A 2D list of cell values. Each inner list represents a row. Values can be strings, numbers, or booleans. Ensure columns are properly aligned across rows. Example: [['Item', 'Cost', 'Stocked', 'Ship Date'], ['Wheel', 20.5, True, '2020-06-01'], ['Screw', 0.5, True, '2020-06-03'], ['Nut', 0.25, False, '2020-06-02']]
-            first_cell_location: The starting cell for the update range, specified in A1 notation (e.g., 'A1', 'B2'). The update will extend from this cell to the right and down, based on the provided values. If omitted, values are appended to the sheet. Example: "A1"
+            first_cell_location: The starting cell for the update range, specified in A1 notation (e.g., 'A1', 'B2'). The update will extend from this cell to the right and down, based on the provided values. If omitted, values are appended to the end of the sheet. Example: "A1"
             value_input_option: How input data is interpreted. 'USER_ENTERED': Values parsed as if typed by a user (e.g., strings may become numbers/dates, formulas are calculated); recommended for formulas. 'RAW': Values stored as-is without parsing (e.g., '123' stays string, '=SUM(A1:B1)' stays string). Defaults to 'USER_ENTERED'. Example: "USER_ENTERED"
             include_values_in_response: If set to True, the response will include the updated values from the spreadsheet. Defaults to False. Example: True
 
@@ -1131,6 +1132,7 @@ class GoogleSheetApp(APIApplication):
     ) -> dict[str, Any]:
         """
         Tool to append values to a spreadsheet. use when you need to add new data to the end of an existing table in a google sheet.
+        Use it for Insert new rows (INSERT_ROWS), specific range append, advanced options
 
         Args:
             spreadsheet_id: The ID of the spreadsheet to update. Example: "1q0gLhLdGXYZblahblahblah"
@@ -1138,7 +1140,7 @@ class GoogleSheetApp(APIApplication):
             value_input_option: How the input data should be interpreted. Required. Options: "RAW" or "USER_ENTERED". Example: "USER_ENTERED"
             values: The data to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. Example: [["A1_val1", "A1_val2"], ["A2_val1", "A2_val2"]]
             major_dimension: The major dimension of the values. For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]]. Options: "ROWS" or "COLUMNS". Example: "ROWS"
-            insert_data_option: How the input data should be inserted. Options: "OVERWRITE" or "INSERT_ROWS". Example: "INSERT_ROWS"
+            insert_data_option: How the input data should be inserted. Options: "OVERWRITE" or "INSERT_ROWS". Use "INSERT_ROWS" to add new rows instead of overwriting existing data. Example: "INSERT_ROWS"
             include_values_in_response: Determines if the update response should include the values of the cells that were appended. By default, responses do not include the updated values. Example: True
             response_value_render_option: Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE. Options: "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA". Example: "FORMATTED_VALUE"
             response_date_time_render_option: Determines how dates, times, and durations in the response should be rendered. This is ignored if responseValueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER. Options: "SERIAL_NUMBER" or "FORMATTED_STRING". Example: "SERIAL_NUMBER"
