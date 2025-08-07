@@ -775,107 +775,7 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
-    def batch_clear_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None) -> dict[str, Any]:
-        """
-        Batch Clear Values by Data Filter
 
-        Args:
-            spreadsheetId (string): spreadsheetId
-            access_token (string): OAuth access token. Example: '{{accessToken}}'.
-            alt (string): Data format for response. Example: '{{alt}}'.
-            callback (string): JSONP Example: '{{callback}}'.
-            fields (string): Selector specifying which fields to include in a partial response. Example: '{{fields}}'.
-            key (string): API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token. Example: '{{key}}'.
-            oauth_token (string): OAuth 2.0 token for the current user. Example: '{{oauthToken}}'.
-            prettyPrint (string): Returns response with indentations and line breaks. Example: '{{prettyPrint}}'.
-            quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
-            upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
-            uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
-            dataFilters (array): dataFilters
-                Example:
-                ```json
-                {
-                  "dataFilters": [
-                    {
-                      "a1Range": "commodo ea in ut",
-                      "developerMetadataLookup": {
-                        "locationMatchingStrategy": "INTERSECTING_LOCATION",
-                        "locationType": "SHEET",
-                        "metadataId": -27000770,
-                        "metadataKey": "ip",
-                        "metadataLocation": {
-                          "dimensionRange": {
-                            "dimension": "DIMENSION_UNSPECIFIED",
-                            "endIndex": 91540263,
-                            "sheetId": -64167623,
-                            "startIndex": 63800966
-                          },
-                          "locationType": "DEVELOPER_METADATA_LOCATION_TYPE_UNSPECIFIED",
-                          "sheetId": 46858270,
-                          "spreadsheet": false
-                        },
-                        "metadataValue": "Excepteur",
-                        "visibility": "DOCUMENT"
-                      },
-                      "gridRange": {
-                        "endColumnIndex": 6998754,
-                        "endRowIndex": 43176042,
-                        "sheetId": -9008085,
-                        "startColumnIndex": -17508638,
-                        "startRowIndex": 21352870
-                      }
-                    },
-                    {
-                      "a1Range": "esse eiusmod",
-                      "developerMetadataLookup": {
-                        "locationMatchingStrategy": "EXACT_LOCATION",
-                        "locationType": "SHEET",
-                        "metadataId": -9620585,
-                        "metadataKey": "in",
-                        "metadataLocation": {
-                          "dimensionRange": {
-                            "dimension": "COLUMNS",
-                            "endIndex": -85774445,
-                            "sheetId": 81988143,
-                            "startIndex": -35232572
-                          },
-                          "locationType": "SPREADSHEET",
-                          "sheetId": -39029265,
-                          "spreadsheet": false
-                        },
-                        "metadataValue": "voluptate adipisicing amet dolor",
-                        "visibility": "PROJECT"
-                      },
-                      "gridRange": {
-                        "endColumnIndex": -87815739,
-                        "endRowIndex": -52115573,
-                        "sheetId": 67629865,
-                        "startColumnIndex": 66943098,
-                        "startRowIndex": 74725547
-                      }
-                    }
-                  ]
-                }
-                ```
-
-        Returns:
-            dict[str, Any]: Successful response
-
-        Tags:
-            Batch Values Update
-        """
-        if spreadsheetId is None:
-            raise ValueError("Missing required parameter 'spreadsheetId'")
-        request_body = {
-            'dataFilters': dataFilters,
-        }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/{spreadsheetId}/values:batchClearByDataFilter"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
 
     def get_values_by_data_filter(
         self,
@@ -1530,7 +1430,6 @@ class GoogleSheetApp(APIApplication):
             self.append_values,
             self.batch_clear_values,
 
-            # Auto generated tools from openapi spec
-            self.batch_clear_values_by_data_filter,
+
             
         ]
