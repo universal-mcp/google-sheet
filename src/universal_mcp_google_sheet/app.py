@@ -2,6 +2,7 @@ from typing import Any
 
 from universal_mcp.applications.application import APIApplication
 from universal_mcp.integrations import Integration
+from universal_mcp_google_sheet.helper import analyze_sheet_for_tables
 
 
 class GoogleSheetApp(APIApplication):
@@ -56,6 +57,47 @@ class GoogleSheetApp(APIApplication):
         """
         url = f"{self.base_url}/{spreadsheet_id}"
         response = self._get(url)
+        return self._handle_response(response)
+
+    def get_values(
+        self, 
+        spreadsheetId: str, 
+        range: str,
+        majorDimension: str = None,
+        valueRenderOption: str = None,
+        dateTimeRenderOption: str = None
+    ) -> dict[str, Any]:
+        """
+        Retrieves values from a specific range in a Google Spreadsheet.
+
+        Args:
+            spreadsheetId: The unique identifier of the Google Spreadsheet to retrieve values from
+            range: A1 notation range string (e.g., 'Sheet1!A1:B2')
+            majorDimension: The major dimension that results should use. "ROWS" or "COLUMNS". Example: "ROWS"
+            valueRenderOption: How values should be represented in the output. "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA". Example: "FORMATTED_VALUE"
+            dateTimeRenderOption: How dates, times, and durations should be represented. "SERIAL_NUMBER" or "FORMATTED_STRING". Example: "FORMATTED_STRING"
+
+        Returns:
+            A dictionary containing the API response with the requested spreadsheet values and metadata
+
+        Raises:
+            HTTPError: If the API request fails due to invalid spreadsheet_id, insufficient permissions, or invalid range format
+            ValueError: If the spreadsheet_id is empty or invalid
+
+        Tags:
+            get, read, spreadsheet, values, important
+        """
+        url = f"{self.base_url}/{spreadsheetId}/values/{range}"
+        params = {}
+        
+        if majorDimension:
+            params["majorDimension"] = majorDimension
+        if valueRenderOption:
+            params["valueRenderOption"] = valueRenderOption
+        if dateTimeRenderOption:
+            params["dateTimeRenderOption"] = dateTimeRenderOption
+        
+        response = self._get(url, params=params)
         return self._handle_response(response)
 
     def batch_get_values(
@@ -1164,6 +1206,79 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+    def list_tables(
+        self,
+        spreadsheet_id: str,
+        min_rows: int = 2,
+        min_columns: int = 1,
+        min_confidence: float = 0.5,
+    ) -> dict[str, Any]:
+        """
+        This action is used to list all tables in a google spreadsheet, call this action to get the list of tables in a spreadsheet. discover all tables in a google spreadsheet by analyzing sheet structure and detecting data patterns. uses heuristic analysis to find header rows, data boundaries, and table structures.
+
+        Args:
+            spreadsheet_id: Google Sheets ID from the URL (e.g., '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'). Example: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+            min_rows: Minimum number of data rows to consider a valid table. Example: 2
+            min_columns: Minimum number of columns to consider a valid table. Example: 1
+            min_confidence: Minimum confidence score (0.0-1.0) to consider a valid table. Example: 0.5
+
+        Returns:
+            A dictionary containing the list of discovered tables with their properties
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or parameters are invalid
+
+        Tags:
+            list, tables, discover, analyze, spreadsheet, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if min_rows < 1:
+            raise ValueError("min_rows must be at least 1")
+        
+        if min_columns < 1:
+            raise ValueError("min_columns must be at least 1")
+        
+        if not 0 <= min_confidence <= 1:
+            raise ValueError("min_confidence must be between 0.0 and 1.0")
+        
+        # Get spreadsheet structure
+        spreadsheet = self.get_spreadsheet(spreadsheet_id)
+        
+        tables = []
+        
+        for sheet in spreadsheet.get("sheets", []):
+            sheet_properties = sheet.get("properties", {})
+            sheet_id = sheet_properties.get("sheetId")
+            sheet_title = sheet_properties.get("title", "Sheet1")
+            
+            # Analyze sheet for tables using helper function
+            sheet_tables = analyze_sheet_for_tables(
+                self.get_values,  # Pass the get_values method as a function
+                spreadsheet_id, 
+                sheet_id, 
+                sheet_title, 
+                min_rows, 
+                min_columns, 
+                min_confidence
+            )
+            
+            tables.extend(sheet_tables)
+        
+        return {
+            "spreadsheet_id": spreadsheet_id,
+            "total_tables": len(tables),
+            "tables": tables,
+            "analysis_parameters": {
+                "min_rows": min_rows,
+                "min_columns": min_columns,
+            }
+        }
+    
+
+
     def list_tools(self):
         """Returns a list of methods exposed as tools."""
         return [
@@ -1182,6 +1297,8 @@ class GoogleSheetApp(APIApplication):
             self.batch_update,
             self.clear_basic_filter,
             self.get_values_by_data_filter,  
+            self.list_tables,
+            self.get_values,
 
             #Auto genearted tools from openapi spec
             self.batch_clear_values,
