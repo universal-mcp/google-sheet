@@ -1343,6 +1343,243 @@ class GoogleSheetApp(APIApplication):
         response = self._post(url, data=request_body)
         return self._handle_response(response)
 
+   
+    def format_cells(
+        self,
+        spreadsheetId: str,
+        worksheetId: int,
+        startRowIndex: int,
+        startColumnIndex: int,
+        endRowIndex: int,
+        endColumnIndex: int,
+        # Text formatting
+        bold: bool = None,
+        italic: bool = None,
+        underline: bool = None,
+        strikethrough: bool = None,
+        fontSize: int = None,
+        fontFamily: str = None,
+        # Colors
+        backgroundRed: float = None,
+        backgroundGreen: float = None,
+        backgroundBlue: float = None,
+        textRed: float = None,
+        textGreen: float = None,
+        textBlue: float = None,
+        # Alignment
+        horizontalAlignment: str = None,  # "LEFT", "CENTER", "RIGHT"
+        verticalAlignment: str = None,    # "TOP", "MIDDLE", "BOTTOM"
+        # Text wrapping
+        wrapStrategy: str = None,  # "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", "WRAP"
+        # Number format
+        numberFormat: str = None,
+        # Borders
+        borderTop: dict = None,
+        borderBottom: dict = None,
+        borderLeft: dict = None,
+        borderRight: dict = None,
+        # Merge cells
+        mergeCells: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Applies comprehensive cell formatting to a specified range in a Google Sheets worksheet.
+        Supports background colors, text colors, borders, text formatting, font properties,
+        alignment, number formats, text wrapping, and cell merging.
+
+        Args:
+            spreadsheetId: Identifier of the Google Sheets spreadsheet. Example: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+            worksheetId: ID (sheetId) of the worksheet. Use `get_spreadsheet` to find this ID. Example: 123456789
+            startRowIndex: 0-based index of the first row in the range. Example: 0
+            startColumnIndex: 0-based index of the first column in the range. Example: 0
+            endRowIndex: 0-based index of the row *after* the last row in the range (exclusive). Example: 1
+            endColumnIndex: 0-based index of the column *after* the last column in the range (exclusive). Example: 2
+            
+            
+            bold: Apply bold formatting. Example: True
+            italic: Apply italic formatting. Example: False
+            underline: Apply underline formatting. Example: False
+            strikethrough: Apply strikethrough formatting. Example: False
+            fontSize: Font size in points. Example: 12
+            fontFamily: Font family name. Example: "Arial", "Times New Roman"
+            
+            backgroundRed: Red component of background color. Example: 0.9
+            backgroundGreen: Green component of background color. Example: 0.9
+            backgroundBlue: Blue component of background color. Example: 0.9
+            
+            textRed: Red component of text color. Example: 0.0
+            textGreen: Green component of text color. Example: 0.0
+            textBlue: Blue component of text color. Example: 0.0
+            
+            horizontalAlignment: "LEFT", "CENTER", or "RIGHT". Example: "CENTER"
+            verticalAlignment: "TOP", "MIDDLE", or "BOTTOM". Example: "MIDDLE"
+            
+            wrapStrategy: "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", or "WRAP". Example: "WRAP"
+            
+            numberFormat: Number format string. Example: "#,##0.00", "0.00%", "$#,##0.00"
+            
+            borderTop: Top border settings. Example: {"style": "SOLID", "color": {"red": 0, "green": 0, "blue": 0}}
+            borderBottom: Bottom border settings. Example: {"style": "SOLID", "color": {"red": 0, "green": 0, "blue": 0}}
+            borderLeft: Left border settings. Example: {"style": "SOLID", "color": {"red": 0, "green": 0, "blue": 0}}
+            borderRight: Right border settings. Example: {"style": "SOLID", "color": {"red": 0, "green": 0, "blue": 0}}
+            
+            mergeCells: Whether to merge the specified range into a single cell. Example: True
+
+        Returns:
+            A dictionary containing the Google Sheets API response with formatting details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty, indices are invalid, or color values are out of range
+
+        Tags:
+            format, cells, styling, text-formatting, background-color, borders, alignment, merge, important
+        """
+        if not spreadsheetId:
+            raise ValueError("spreadsheetId cannot be empty")
+        
+        if worksheetId < 0:
+            raise ValueError("worksheetId must be non-negative")
+        
+        if startRowIndex < 0 or startColumnIndex < 0 or endRowIndex < 0 or endColumnIndex < 0:
+            raise ValueError("All indices must be non-negative")
+        
+        if startRowIndex >= endRowIndex:
+            raise ValueError("endRowIndex must be greater than startRowIndex")
+        
+        if startColumnIndex >= endColumnIndex:
+            raise ValueError("endColumnIndex must be greater than startColumnIndex")
+        
+        # Validate color values if provided
+        for color_name, color_value in [
+            ("backgroundRed", backgroundRed), ("backgroundGreen", backgroundGreen), ("backgroundBlue", backgroundBlue),
+            ("textRed", textRed), ("textGreen", textGreen), ("textBlue", textBlue)
+        ]:
+            if color_value is not None and not 0 <= color_value <= 1:
+                raise ValueError(f"{color_name} must be between 0.0 and 1.0")
+        
+        if fontSize is not None and fontSize <= 0:
+            raise ValueError("fontSize must be positive")
+        
+        if horizontalAlignment and horizontalAlignment not in ["LEFT", "CENTER", "RIGHT"]:
+            raise ValueError('horizontalAlignment must be "LEFT", "CENTER", or "RIGHT"')
+        
+        if verticalAlignment and verticalAlignment not in ["TOP", "MIDDLE", "BOTTOM"]:
+            raise ValueError('verticalAlignment must be "TOP", "MIDDLE", or "BOTTOM"')
+        
+        if wrapStrategy and wrapStrategy not in ["OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", "WRAP"]:
+            raise ValueError('wrapStrategy must be "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", or "WRAP"')
+        
+        url = f"{self.base_url}/{spreadsheetId}:batchUpdate"
+        
+        requests = []
+        
+        # Handle cell merging first if requested
+        if mergeCells:
+            requests.append({
+                "mergeCells": {
+                    "range": {
+                        "sheetId": worksheetId,
+                        "startRowIndex": startRowIndex,
+                        "endRowIndex": endRowIndex,
+                        "startColumnIndex": startColumnIndex,
+                        "endColumnIndex": endColumnIndex
+                    },
+                    "mergeType": "MERGE_ALL"
+                }
+            })
+        
+        # Build the cell format request
+        cell_format = {}
+        
+        # Text format
+        text_format = {}
+        if bold is not None:
+            text_format["bold"] = bold
+        if italic is not None:
+            text_format["italic"] = italic
+        if underline is not None:
+            text_format["underline"] = underline
+        if strikethrough is not None:
+            text_format["strikethrough"] = strikethrough
+        if fontSize is not None:
+            text_format["fontSize"] = fontSize
+        if fontFamily is not None:
+            text_format["fontFamily"] = fontFamily
+        
+        # Text color
+        if any(color is not None for color in [textRed, textGreen, textBlue]):
+            text_color = {}
+            if textRed is not None:
+                text_color["red"] = textRed
+            if textGreen is not None:
+                text_color["green"] = textGreen
+            if textBlue is not None:
+                text_color["blue"] = textBlue
+            if text_color:
+                text_format["foregroundColor"] = {"rgbColor": text_color}
+        
+        if text_format:
+            cell_format["textFormat"] = text_format
+        
+        # Background color
+        if any(color is not None for color in [backgroundRed, backgroundGreen, backgroundBlue]):
+            background_color = {}
+            if backgroundRed is not None:
+                background_color["red"] = backgroundRed
+            if backgroundGreen is not None:
+                background_color["green"] = backgroundGreen
+            if backgroundBlue is not None:
+                background_color["blue"] = backgroundBlue
+            if background_color:
+                cell_format["backgroundColorStyle"] = {"rgbColor": background_color}
+        
+        # Alignment
+        if horizontalAlignment or verticalAlignment:
+            cell_format["horizontalAlignment"] = horizontalAlignment
+            cell_format["verticalAlignment"] = verticalAlignment
+        
+        # Text wrapping
+        if wrapStrategy:
+            cell_format["wrapStrategy"] = wrapStrategy
+        
+        # Number format
+        if numberFormat:
+            cell_format["numberFormat"] = {"type": "TEXT", "pattern": numberFormat}
+        
+        # Borders
+        borders = {}
+        for border_side, border_config in [
+            ("top", borderTop), ("bottom", borderBottom), 
+            ("left", borderLeft), ("right", borderRight)
+        ]:
+            if border_config:
+                borders[border_side] = border_config
+        
+        if borders:
+            cell_format["borders"] = borders
+        
+        # Add cell formatting request if any formatting is specified
+        if cell_format:
+            requests.append({
+                "repeatCell": {
+                    "range": {
+                        "sheetId": worksheetId,
+                        "startRowIndex": startRowIndex,
+                        "endRowIndex": endRowIndex,
+                        "startColumnIndex": startColumnIndex,
+                        "endColumnIndex": endColumnIndex
+                    },
+                    "cell": {
+                        "userEnteredFormat": cell_format
+                    },
+                    "fields": "userEnteredFormat"
+                }
+            })
+        
+        request_body = {"requests": requests}
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
 
     def list_tools(self):
         """Returns a list of methods exposed as tools."""
@@ -1369,7 +1606,5 @@ class GoogleSheetApp(APIApplication):
             self.append_values,
             self.batch_clear_values,
             self.batch_get_values_by_data_filter,
-
-
-            
+            self.format_cells,
         ]
