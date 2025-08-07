@@ -738,51 +738,42 @@ class GoogleSheetApp(APIApplication):
         return self._handle_response(response)
 
 
-    def batch_clear_values(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, ranges=None) -> dict[str, Any]:
+    def batch_clear_values(
+        self,
+        spreadsheet_id: str,
+        ranges: list[str],
+    ) -> dict[str, Any]:
         """
-        Batch Clear Values
+        Tool to clear one or more ranges of values from a spreadsheet. use when you need to remove data from specific cells or ranges while keeping formatting and other properties intact.
 
         Args:
-            spreadsheetId (string): spreadsheetId
-            access_token (string): OAuth access token. Example: '{{accessToken}}'.
-            alt (string): Data format for response. Example: '{{alt}}'.
-            callback (string): JSONP Example: '{{callback}}'.
-            fields (string): Selector specifying which fields to include in a partial response. Example: '{{fields}}'.
-            key (string): API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token. Example: '{{key}}'.
-            oauth_token (string): OAuth 2.0 token for the current user. Example: '{{oauthToken}}'.
-            prettyPrint (string): Returns response with indentations and line breaks. Example: '{{prettyPrint}}'.
-            quotaUser (string): Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Example: '{{quotaUser}}'.
-            upload_protocol (string): Upload protocol for media (e.g. "raw", "multipart"). Example: '{{uploadProtocol}}'.
-            uploadType (string): Legacy upload protocol for media (e.g. "media", "multipart"). Example: '{{uploadType}}'.
-            xgafv (string): V1 error format. Example: '{{.Xgafv}}'.
-            ranges (array): ranges
-                Example:
-                ```json
-                {
-                  "ranges": [
-                    "nostrud sunt reprehenderit proident cillum",
-                    "laborum eiusmod dolor ali"
-                  ]
-                }
-                ```
+            spreadsheet_id: The ID of the spreadsheet to update. Example: "1q2w3e4r5t6y7u8i9o0p"
+            ranges: The ranges to clear, in A1 notation or R1C1 notation. Example: ["Sheet1!A1:B2", "Sheet1!C3:D4"]
 
         Returns:
-            dict[str, Any]: Successful response
+            A dictionary containing the Google Sheets API response with clear details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or ranges is empty
 
         Tags:
-            Batch Values Update
+            clear, batch, values, spreadsheet, important
         """
-        if spreadsheetId is None:
-            raise ValueError("Missing required parameter 'spreadsheetId'")
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not ranges or not isinstance(ranges, list) or len(ranges) == 0:
+            raise ValueError("ranges must be a non-empty list")
+        
+        url = f"{self.base_url}/{spreadsheet_id}/values:batchClear"
+        
         request_body = {
-            'ranges': ranges,
+            "ranges": ranges
         }
-        request_body = {k: v for k, v in request_body.items() if v is not None}
-        url = f"{self.base_url}/{spreadsheetId}/values:batchClear"
-        query_params = {k: v for k, v in [('access_token', access_token), ('alt', alt), ('callback', callback), ('fields', fields), ('key', key), ('oauth_token', oauth_token), ('prettyPrint', prettyPrint), ('quotaUser', quotaUser), ('upload_protocol', upload_protocol), ('uploadType', uploadType), ('$.xgafv', xgafv)] if v is not None}
-        response = self._post(url, data=request_body, params=query_params)
-        response.raise_for_status()
-        return response.json()
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
 
     def batch_clear_values_by_data_filter(self, spreadsheetId, access_token=None, alt=None, callback=None, fields=None, key=None, oauth_token=None, prettyPrint=None, quotaUser=None, upload_protocol=None, uploadType=None, xgafv=None, dataFilters=None) -> dict[str, Any]:
         """
@@ -1537,9 +1528,9 @@ class GoogleSheetApp(APIApplication):
             self.set_basic_filter,
             self.copy_to_sheet,
             self.append_values,
+            self.batch_clear_values,
 
             # Auto generated tools from openapi spec
-            self.batch_clear_values,
             self.batch_clear_values_by_data_filter,
             
         ]
