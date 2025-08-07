@@ -93,6 +93,9 @@ class GoogleSheetApp(APIApplication):
         start_index: int,
         end_index: int,
         inherit_from_before: bool = True,
+        include_spreadsheet_in_response: bool = None,
+        response_include_grid_data: bool = None,
+        response_ranges: list[str] = None,
     ) -> dict[str, Any]:
         """
         Inserts new rows or columns into a Google Sheet at a specific position within the sheet.
@@ -101,12 +104,15 @@ class GoogleSheetApp(APIApplication):
         Use this when you need to add rows/columns in the middle of your data.
 
         Args:
-            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
-            sheet_id: The ID of the sheet within the spreadsheet (0 for first sheet)
-            dimension: The type of dimension to insert - "ROWS" or "COLUMNS"
-            start_index: The 0-based starting index where insertion should begin
-            end_index: The 0-based ending index (exclusive). Number of rows/columns inserted = end_index - start_index
-            inherit_from_before: Whether the new dimensions should inherit properties from the dimensions before the insertion point. Defaults to True
+            spreadsheet_id: The ID of the spreadsheet to update. Example: "abc123spreadsheetId"
+            sheet_id: The ID of the sheet where the dimensions will be inserted. Example: 0
+            dimension: The dimension to insert. Valid values are "ROWS" or "COLUMNS". Example: "ROWS"
+            start_index: The start index (0-based) of the dimension range to insert. The inserted dimensions will be placed before this index. Example: 1
+            end_index: The end index (0-based, exclusive) of the dimension range to insert. The number of rows/columns to insert is `endIndex - startIndex`. Example: 3
+            inherit_from_before: If true, the new dimensions will inherit properties from the dimension before the startIndex. If false (default), they will inherit from the dimension at the startIndex. startIndex must be greater than 0 if inheritFromBefore is true. Example: True
+            include_spreadsheet_in_response: True if the updated spreadsheet should be included in the response. Example: True
+            response_include_grid_data: True if grid data should be included in the response (if includeSpreadsheetInResponse is true). Example: True
+            response_ranges: Limits the ranges of the spreadsheet to include in the response. Example: ["Sheet1!A1:B10"]
 
         Returns:
             A dictionary containing the Google Sheets API response with update details
@@ -147,6 +153,16 @@ class GoogleSheetApp(APIApplication):
                 }
             ]
         }
+        
+        # Add optional parameters if provided
+        if include_spreadsheet_in_response is not None:
+            request_body["includeSpreadsheetInResponse"] = include_spreadsheet_in_response
+        
+        if response_include_grid_data is not None:
+            request_body["responseIncludeGridData"] = response_include_grid_data
+        
+        if response_ranges is not None:
+            request_body["responseRanges"] = response_ranges
         
         response = self._post(url, data=request_body)
         return self._handle_response(response)
