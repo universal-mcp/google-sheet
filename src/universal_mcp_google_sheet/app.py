@@ -494,8 +494,7 @@ class GoogleSheetApp(APIApplication):
             domain_range: Dictionary containing domain range info (e.g., {"startRowIndex": 0, "endRowIndex": 7, "startColumnIndex": 0, "endColumnIndex": 1})
             series_ranges: List of dictionaries containing series range info for each data series
             new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
-            chart_position: Optional positioning for chart when new_sheet=False. 
-                          Example: {"overlayPosition": {"anchorCell": {"sheetId": 0, "rowIndex": 10, "columnIndex": 5}, "widthPixels": 600, "heightPixels": 400}}
+            chart_position: Optional positioning for chart when new_sheet=False. Example: {"overlayPosition": {"anchorCell": {"sheetId": 0, "rowIndex": 10, "columnIndex": 5}, "offsetXPixels": 0, "offsetYPixels": 0, "widthPixels": 600, "heightPixels": 400}}
             x_axis_title: Optional title for the X-axis (bottom axis). If not provided, defaults to "Categories"
             y_axis_title: Optional title for the Y-axis (left axis). If not provided, defaults to "Values"
 
@@ -574,6 +573,135 @@ class GoogleSheetApp(APIApplication):
                 "targetAxis": "LEFT_AXIS"
             }
             chart_spec["basicChart"]["series"].append(series)
+        
+        # Build the position specification
+        if new_sheet:
+            position_spec = {"newSheet": True}
+        else:
+            # For existing sheet, use overlayPosition structure
+            if chart_position:
+                position_spec = chart_position
+            else:
+                # Default positioning when placing in existing sheet
+                position_spec = {
+                    "overlayPosition": {
+                        "anchorCell": {
+                            "sheetId": source_sheet_id,
+                            "rowIndex": 0,
+                            "columnIndex": 0
+                        },
+                        "offsetXPixels": 0,
+                        "offsetYPixels": 0,
+                        "widthPixels": 600,
+                        "heightPixels": 400
+                    }
+                }
+        
+        # Build the request body
+        request_body = {
+            "requests": [
+                {
+                    "addChart": {
+                        "chart": {
+                            "spec": chart_spec,
+                            "position": position_spec
+                        }
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
+    def add_pie_chart(
+        self,
+        spreadsheet_id: str,
+        source_sheet_id: int,
+        chart_title: str,
+        data_range: dict,
+        new_sheet: bool = False,
+        chart_position: dict = None,
+        legend_position: str = "BOTTOM_LEGEND",
+        pie_hole: float = None,
+    ) -> dict[str, Any]:
+        """
+        Adds a pie chart to a Google Spreadsheet.
+
+        This function creates a pie chart from the specified data range and places it in a new sheet or existing sheet.
+        Use this when you need to visualize data as proportions of a whole.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            source_sheet_id: The ID of the sheet containing the source data
+            chart_title: The title for the chart
+            data_range: Dictionary containing data range info (e.g., {"startRowIndex": 0, "endRowIndex": 7, "startColumnIndex": 0, "endColumnIndex": 2})
+            new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
+            chart_position: Optional positioning for chart when new_sheet=False. Example: {"overlayPosition": {"anchorCell": {"sheetId": 0, "rowIndex": 10, "columnIndex": 5}, "offsetXPixels": 0, "offsetYPixels": 0, "widthPixels": 600, "heightPixels": 400}}
+            legend_position: Position of the legend. Options: "BOTTOM_LEGEND", "LEFT_LEGEND", "RIGHT_LEGEND", "TOP_LEGEND", "NO_LEGEND"
+            pie_hole: Optional hole size for creating a donut chart (0.0 to 1.0). 0.0 = solid pie, 0.5 = 50% hole
+
+        Returns:
+            A dictionary containing the Google Sheets API response with the chart details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id is empty or invalid parameters are provided
+
+        Tags:
+            add, chart, pie, visualization, important
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not chart_title:
+            raise ValueError("chart_title cannot be empty")
+        
+        if pie_hole is not None and not 0 <= pie_hole <= 1:
+            raise ValueError("pie_hole must be between 0.0 and 1.0")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        # Build the pie chart specification
+        pie_chart_spec = {
+            "legendPosition": legend_position,
+            "domain": {
+                "sourceRange": {
+                    "sources": [
+                        {
+                            "sheetId": source_sheet_id,
+                            "startRowIndex": data_range.get("startRowIndex", 0),
+                            "endRowIndex": data_range.get("endRowIndex", 1),
+                            "startColumnIndex": data_range.get("startColumnIndex", 0),
+                            "endColumnIndex": data_range.get("startColumnIndex", 0) + 1
+                        }
+                    ]
+                }
+            },
+            "series": {
+                "sourceRange": {
+                    "sources": [
+                        {
+                            "sheetId": source_sheet_id,
+                            "startRowIndex": data_range.get("startRowIndex", 0),
+                            "endRowIndex": data_range.get("endRowIndex", 1),
+                            "startColumnIndex": data_range.get("startColumnIndex", 0) + 1,
+                            "endColumnIndex": data_range.get("endColumnIndex", 2)
+                        }
+                    ]
+                }
+            }
+        }
+        
+        # Add pie hole for donut chart if specified
+        if pie_hole is not None:
+            pie_chart_spec["pieHole"] = pie_hole
+        
+        # Build the chart specification
+        chart_spec = {
+            "title": chart_title,
+            "pieChart": pie_chart_spec
+        }
         
         # Build the position specification
         if new_sheet:
@@ -1623,6 +1751,7 @@ class GoogleSheetApp(APIApplication):
             self.add_sheet,
             self.delete_sheet,
             self.add_basic_chart,
+            self.add_pie_chart,
             self.add_table,
             self.clear_values,
             self.update_values,
