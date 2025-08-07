@@ -476,6 +476,8 @@ class GoogleSheetApp(APIApplication):
         series_ranges: list[dict],
         new_sheet: bool = False,
         chart_position: dict = None,
+        x_axis_title: str = None,
+        y_axis_title: str = None,
     ) -> dict[str, Any]:
         """
         Adds a column chart to a Google Spreadsheet.
@@ -492,6 +494,8 @@ class GoogleSheetApp(APIApplication):
             new_sheet: Whether to create the chart in a new sheet (True) or existing sheet (False)
             chart_position: Optional positioning for chart when new_sheet=False. 
                           Example: {"overlayPosition": {"anchorCell": {"sheetId": 0, "rowIndex": 10, "columnIndex": 5}, "widthPixels": 600, "heightPixels": 400}}
+            x_axis_title: Optional title for the X-axis (bottom axis). If not provided, defaults to "Categories"
+            y_axis_title: Optional title for the Y-axis (left axis). If not provided, defaults to "Values"
 
         Returns:
             A dictionary containing the Google Sheets API response with the chart details
@@ -520,11 +524,11 @@ class GoogleSheetApp(APIApplication):
                 "axis": [
                     {
                         "position": "BOTTOM_AXIS",
-                        "title": "Categories"
+                        "title": x_axis_title if x_axis_title else "Categories"
                     },
                     {
                         "position": "LEFT_AXIS",
-                        "title": "Values"
+                        "title": y_axis_title if y_axis_title else "Values"
                     }
                 ],
                 "domains": [
