@@ -63,9 +63,9 @@ class GoogleSheetApp(APIApplication):
         self, 
         spreadsheetId: str, 
         range: str,
-        majorDimension: str = None,
-        valueRenderOption: str = None,
-        dateTimeRenderOption: str = None
+        majorDimension: str | None = None,
+        valueRenderOption: str | None = None,
+        dateTimeRenderOption: str | None = None
     ) -> dict[str, Any]:
         """
         Retrieves values from a specific range in a Google Spreadsheet.
@@ -101,7 +101,7 @@ class GoogleSheetApp(APIApplication):
         return self._handle_response(response)
 
     def batch_get_values(
-        self, spreadsheet_id: str, ranges: list[str] = None
+        self, spreadsheet_id: str, ranges: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Retrieves multiple ranges of values from a Google Spreadsheet in a single batch request.
@@ -135,9 +135,9 @@ class GoogleSheetApp(APIApplication):
         start_index: int,
         end_index: int,
         inherit_from_before: bool = True,
-        include_spreadsheet_in_response: bool = None,
-        response_include_grid_data: bool = None,
-        response_ranges: list[str] = None,
+        include_spreadsheet_in_response: bool | None = None,
+        response_include_grid_data: bool | None = None,
+        response_ranges: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Inserts new rows or columns into a Google Sheet at a specific position within the sheet.
@@ -180,7 +180,7 @@ class GoogleSheetApp(APIApplication):
         
         url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
         
-        request_body = {
+        request_body: dict[str, Any] = {
             "requests": [
                 {
                     "insertDimension": {
@@ -271,9 +271,9 @@ class GoogleSheetApp(APIApplication):
         dimension: str,
         start_index: int,
         end_index: int,
-        include_spreadsheet_in_response: bool = None,
-        response_include_grid_data: bool = None,
-        response_ranges: list[str] = None,
+        include_spreadsheet_in_response: bool | None = None,
+        response_include_grid_data: bool | None = None,
+        response_ranges: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Tool to delete specified rows or columns from a sheet in a google spreadsheet. use when you need to remove a range of rows or columns.
@@ -313,7 +313,7 @@ class GoogleSheetApp(APIApplication):
         
         url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
         
-        request_body = {
+        request_body: dict[str, Any] = {
             "requests": [
                 {
                     "deleteDimension": {
@@ -344,21 +344,21 @@ class GoogleSheetApp(APIApplication):
     def add_sheet(
         self,
         spreadsheetId: str,
-        title: str = None,
-        sheetId: int = None,
-        index: int = None,
+        title: str | None = None,
+        sheetId: int | None = None,
+        index: int | None = None,
         sheetType: str = "GRID",
-        hidden: bool = None,
-        rightToLeft: bool = None,
-        tabColorStyle: dict = None,
+        hidden: bool | None = None,
+        rightToLeft: bool | None = None,
+        tabColorStyle: dict | None = None,
         # Grid properties
-        rowCount: int = None,
-        columnCount: int = None,
-        frozenRowCount: int = None,
-        frozenColumnCount: int = None,
-        hideGridlines: bool = None,
-        rowGroupControlAfter: bool = None,
-        columnGroupControlAfter: bool = None,
+        rowCount: int | None = None,
+        columnCount: int | None = None,
+        frozenRowCount: int | None = None,
+        frozenColumnCount: int | None = None,
+        hideGridlines: bool | None = None,
+        rowGroupControlAfter: bool | None = None,
+        columnGroupControlAfter: bool | None = None,
         # Response options
         includeSpreadsheetInResponse: bool = False,
         responseIncludeGridData: bool = False,
@@ -476,9 +476,9 @@ class GoogleSheetApp(APIApplication):
         domain_range: dict,
         series_ranges: list[dict],
         new_sheet: bool = False,
-        chart_position: dict = None,
-        x_axis_title: str = None,
-        y_axis_title: str = None,
+        chart_position: dict | None = None,
+        x_axis_title: str | None = None,
+        y_axis_title: str | None = None,
     ) -> dict[str, Any]:
         """
         Adds a basic chart to a Google Spreadsheet like a column chart, bar chart, line chart and  area chart.
@@ -621,9 +621,9 @@ class GoogleSheetApp(APIApplication):
         chart_title: str,
         data_range: dict,
         new_sheet: bool = False,
-        chart_position: dict = None,
+        chart_position: dict | None = None,
         legend_position: str = "BOTTOM_LEGEND",
-        pie_hole: float = None,
+        pie_hole: float | None = None,
     ) -> dict[str, Any]:
         """
         Adds a pie chart to a Google Spreadsheet.
@@ -753,7 +753,7 @@ class GoogleSheetApp(APIApplication):
         end_row_index: int,
         start_column_index: int,
         end_column_index: int,
-        column_properties: list[dict] = None,
+        column_properties: list[dict] | None = None,
     ) -> dict[str, Any]:
         """
         Adds a table to a Google Spreadsheet.
@@ -941,9 +941,9 @@ class GoogleSheetApp(APIApplication):
         self,
         spreadsheet_id: str,
         data_filters: list[dict],
-        major_dimension: str = None,
-        value_render_option: str = None,
-        date_time_render_option: str = None,
+        major_dimension: str | None = None,
+        value_render_option: str | None = None,
+        date_time_render_option: str | None = None,
     ) -> dict[str, Any]:
         """
         Tool to return one or more ranges of values from a spreadsheet that match the specified data filters. use when you need to retrieve specific data sets based on filtering criteria rather than entire sheets or fixed ranges.
@@ -984,7 +984,7 @@ class GoogleSheetApp(APIApplication):
         
         url = f"{self.base_url}/{spreadsheet_id}/values:batchGetByDataFilter"
         
-        request_body = {
+        request_body: dict[str, Any] = {
             "dataFilters": data_filters
         }
         
@@ -1049,7 +1049,7 @@ class GoogleSheetApp(APIApplication):
         spreadsheet_id: str,
         sheet_name: str,
         values: list[list[Any]],
-        first_cell_location: str = None,
+        first_cell_location: str | None = None,
         value_input_option: str = "USER_ENTERED",
         include_values_in_response: bool = False,
     ) -> dict[str, Any]:
@@ -1113,11 +1113,11 @@ class GoogleSheetApp(APIApplication):
         range: str,
         value_input_option: str,
         values: list[list[Any]],
-        major_dimension: str = None,
-        insert_data_option: str = None,
-        include_values_in_response: bool = None,
-        response_value_render_option: str = None,
-        response_date_time_render_option: str = None,
+        major_dimension: str | None = None,
+        insert_data_option: str | None = None,
+        include_values_in_response: bool | None = None,
+        response_value_render_option: str | None = None,
+        response_date_time_render_option: str | None = None,
     ) -> dict[str, Any]:
         """
         Tool to append values to a spreadsheet. use when you need to add new data to the end of an existing table in a google sheet.
@@ -1173,7 +1173,7 @@ class GoogleSheetApp(APIApplication):
         
         url = f"{self.base_url}/{spreadsheet_id}/values/{range}:append"
         
-        params = {
+        params: dict[str, Any] = {
             "valueInputOption": value_input_option
         }
         
@@ -1359,7 +1359,7 @@ class GoogleSheetApp(APIApplication):
         self,
         spreadsheet_id: str,
         table_name: str,
-        sheet_name: str = None,
+        sheet_name: str | None = None,
         sample_size: int = 50,
     ) -> dict[str, Any]:
         """
@@ -1511,31 +1511,31 @@ class GoogleSheetApp(APIApplication):
         endRowIndex: int,
         endColumnIndex: int,
         # Text formatting
-        bold: bool = None,
-        italic: bool = None,
-        underline: bool = None,
-        strikethrough: bool = None,
-        fontSize: int = None,
-        fontFamily: str = None,
+        bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
+        strikethrough: bool | None = None,
+        fontSize: int | None = None,
+        fontFamily: str | None = None,
         # Colors
-        backgroundRed: float = None,
-        backgroundGreen: float = None,
-        backgroundBlue: float = None,
-        textRed: float = None,
-        textGreen: float = None,
-        textBlue: float = None,
+        backgroundRed: float | None = None,
+        backgroundGreen: float | None = None,
+        backgroundBlue: float | None = None,
+        textRed: float | None = None,
+        textGreen: float | None = None,
+        textBlue: float | None = None,
         # Alignment
-        horizontalAlignment: str = None,  # "LEFT", "CENTER", "RIGHT"
-        verticalAlignment: str = None,    # "TOP", "MIDDLE", "BOTTOM"
+        horizontalAlignment: str | None = None,  # "LEFT", "CENTER", "RIGHT"
+        verticalAlignment: str | None = None,    # "TOP", "MIDDLE", "BOTTOM"
         # Text wrapping
-        wrapStrategy: str = None,  # "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", "WRAP"
+        wrapStrategy: str | None = None,  # "OVERFLOW_CELL", "LEGACY_WRAP", "CLIP", "WRAP"
         # Number format
-        numberFormat: str = None,
+        numberFormat: str | None = None,
         # Borders
-        borderTop: dict = None,
-        borderBottom: dict = None,
-        borderLeft: dict = None,
-        borderRight: dict = None,
+        borderTop: dict | None = None,
+        borderBottom: dict | None = None,
+        borderLeft: dict | None = None,
+        borderRight: dict | None = None,
         # Merge cells
         mergeCells: bool = False,
     ) -> dict[str, Any]:
