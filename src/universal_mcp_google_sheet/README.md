@@ -20,6 +20,7 @@ This is automatically generated from OpenAPI schema for the GoogleSheetApp API.
 | `add_basic_chart` | Adds a basic chart to a Google Spreadsheet like a column chart, bar chart, line chart and  area chart. |
 | `add_pie_chart` | Adds a pie chart to a Google Spreadsheet. |
 | `add_table` | Adds a table to a Google Spreadsheet. |
+| `update_table` | Updates an existing table in a Google Spreadsheet. |
 | `clear_values` | Clears all values from a specified range in a Google Spreadsheet while preserving cell formatting and other properties |
 | `update_values` | Updates cell values in a specified range of a Google Spreadsheet using the Sheets API |
 | `batch_update` | Updates a specified range in a google sheet with given values, or appends them as new rows if `first cell location` is omitted; ensure the target sheet exists and the spreadsheet contains at least one worksheet. |
