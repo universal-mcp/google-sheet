@@ -770,15 +770,7 @@ class GoogleSheetApp(APIApplication):
             end_row_index: The ending row index (exclusive)
             start_column_index: The starting column index (0-based)
             end_column_index: The ending column index (exclusive)
-            column_properties: Optional list of column properties with types and validation rules.
-                Example: [
-                    {"columnIndex": 0, "columnName": "Model Number", "columnType": "TEXT"},
-                    {"columnIndex": 1, "columnName": "Sales - Jan", "columnType": "NUMBER"},
-                    {"columnIndex": 2, "columnName": "Progress", "columnType": "PERCENT"},
-                    {"columnIndex": 3, "columnName": "Status", "columnType": "DROPDOWN", "dataValidationRule": {"condition": {"type": "ONE_OF_LIST", "values": [{"userEnteredValue": "Active"}, {"userEnteredValue": "Inactive"}]}}},
-                    {"columnIndex": 4, "columnName": "Active", "columnType": "CHECKBOX"}
-                ]
-
+            column_properties: Optional list of column properties with types and validation rules. Valid column types: "TEXT", "PERCENT", "DROPDOWN", "DOUBLE", "CURRENCY", "DATE", "TIME", "DATE_TIME". Example: [{"columnIndex": 0, "columnName": "Model Number", "columnType": "TEXT"}, {"columnIndex": 1, "columnName": "Sales - Jan", "columnType": "DOUBLE"}, {"columnIndex": 2, "columnName": "Price", "columnType": "CURRENCY"}, {"columnIndex": 3, "columnName": "Progress", "columnType": "PERCENT"}, {"columnIndex": 4, "columnName": "Created Date", "columnType": "DATE"}, {"columnIndex": 5, "columnName": "Status", "columnType": "DROPDOWN", "dataValidationRule": {"condition": {"type": "ONE_OF_LIST", "values": [{"userEnteredValue": "Active"}, {"userEnteredValue": "Inactive"}]}}}]
         Returns:
             A dictionary containing the Google Sheets API response with the table details
 
@@ -807,6 +799,13 @@ class GoogleSheetApp(APIApplication):
         if start_column_index >= end_column_index:
             raise ValueError("end_column_index must be greater than start_column_index")
         
+        # Validate column properties if provided
+        if column_properties:
+            valid_column_types = ["TEXT", "PERCENT", "DROPDOWN", "DOUBLE", "CURRENCY", "DATE", "TIME", "DATE_TIME"]
+            for i, prop in enumerate(column_properties):
+                if "columnType" in prop and prop["columnType"] not in valid_column_types:
+                    raise ValueError(f"Invalid column type '{prop['columnType']}' at index {i}. Valid types are: {', '.join(valid_column_types)}")
+        
         url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
         
         # Build the table specification
@@ -832,6 +831,127 @@ class GoogleSheetApp(APIApplication):
                 {
                     "addTable": {
                         "table": table_spec
+                    }
+                }
+            ]
+        }
+        
+        response = self._post(url, data=request_body)
+        return self._handle_response(response)
+
+    def update_table(
+        self,
+        spreadsheet_id: str,
+        table_id: str,
+        table_name: str | None = None,
+        start_row_index: int | None = None,
+        end_row_index: int | None = None,
+        start_column_index: int | None = None,
+        end_column_index: int | None = None,
+        column_properties: list[dict] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Updates an existing table in a Google Spreadsheet.
+
+        This function modifies table properties such as name, range, and column properties.
+        Use this when you need to modify an existing table's structure or properties.
+
+        Args:
+            spreadsheet_id: The unique identifier of the Google Spreadsheet to modify
+            table_id: The unique identifier of the table to update
+            table_name: Optional new name for the table
+            start_row_index: Optional new starting row index (0-based)
+            end_row_index: Optional new ending row index (exclusive)
+            start_column_index: Optional new starting column index (0-based)
+            end_column_index: Optional new ending column index (exclusive)
+            column_properties: Optional list of column properties with types and validation rules. Valid column types: "TEXT", "PERCENT", "DROPDOWN", "DOUBLE", "CURRENCY", "DATE", "TIME", "DATE_TIME". Example: [{"columnIndex": 0, "columnName": "Model Number", "columnType": "TEXT"}, {"columnIndex": 1, "columnName": "Sales - Jan", "columnType": "DOUBLE"}, {"columnIndex": 2, "columnName": "Price", "columnType": "CURRENCY"}, {"columnIndex": 3, "columnName": "Progress", "columnType": "PERCENT"}, {"columnIndex": 4, "columnName": "Created Date", "columnType": "DATE"}, {"columnIndex": 5, "columnName": "Status", "columnType": "DROPDOWN", "dataValidationRule": {"condition": {"type": "ONE_OF_LIST", "values": [{"userEnteredValue": "Active"}, {"userEnteredValue": "Inactive"}]}}}]
+
+        Returns:
+            A dictionary containing the Google Sheets API response with the updated table details
+
+        Raises:
+            HTTPError: When the API request fails due to invalid parameters or insufficient permissions
+            ValueError: When spreadsheet_id or table_id is empty or invalid parameters are provided
+
+        Tags:
+            update, table, modify, structured-data
+        """
+        if not spreadsheet_id:
+            raise ValueError("spreadsheet_id cannot be empty")
+        
+        if not table_id:
+            raise ValueError("table_id cannot be empty")
+        
+        # Validate indices if provided
+        if start_row_index is not None and start_row_index < 0:
+            raise ValueError("start_row_index must be non-negative")
+        
+        if end_row_index is not None and end_row_index < 0:
+            raise ValueError("end_row_index must be non-negative")
+        
+        if start_column_index is not None and start_column_index < 0:
+            raise ValueError("start_column_index must be non-negative")
+        
+        if end_column_index is not None and end_column_index < 0:
+            raise ValueError("end_column_index must be non-negative")
+        
+        if start_row_index is not None and end_row_index is not None and start_row_index >= end_row_index:
+            raise ValueError("end_row_index must be greater than start_row_index")
+        
+        if start_column_index is not None and end_column_index is not None and start_column_index >= end_column_index:
+            raise ValueError("end_column_index must be greater than start_column_index")
+        
+        # Validate column properties if provided
+        if column_properties:
+            valid_column_types = ["TEXT", "PERCENT", "DROPDOWN", "DOUBLE", "CURRENCY", "DATE", "TIME", "DATE_TIME"]
+            for i, prop in enumerate(column_properties):
+                if "columnType" in prop and prop["columnType"] not in valid_column_types:
+                    raise ValueError(f"Invalid column type '{prop['columnType']}' at index {i}. Valid types are: {', '.join(valid_column_types)}")
+        
+        url = f"{self.base_url}/{spreadsheet_id}:batchUpdate"
+        
+        # Build the table specification and track fields to update
+        table_spec: dict[str, Any] = {
+            "tableId": table_id
+        }
+        fields_to_update = []
+        
+        # Add optional properties if provided
+        if table_name is not None:
+            table_spec["name"] = table_name
+            fields_to_update.append("name")
+        
+        # Build range if any range parameters are provided
+        range_params: dict[str, Any] = {}
+        if start_row_index is not None:
+            range_params["startRowIndex"] = start_row_index
+        if end_row_index is not None:
+            range_params["endRowIndex"] = end_row_index
+        if start_column_index is not None:
+            range_params["startColumnIndex"] = start_column_index
+        if end_column_index is not None:
+            range_params["endColumnIndex"] = end_column_index
+        
+        if range_params:
+            table_spec["range"] = range_params
+            fields_to_update.append("range")
+        
+        # Add column properties if provided
+        if column_properties:
+            table_spec["columnProperties"] = column_properties
+            fields_to_update.append("columnProperties")
+        
+        # Validate that at least one field is being updated
+        if not fields_to_update:
+            raise ValueError("At least one field must be provided for update (table_name, range indices, or column_properties)")
+        
+        # Build the request body
+        request_body = {
+            "requests": [
+                {
+                    "updateTable": {
+                        "table": table_spec,
+                        "fields": ",".join(fields_to_update)
                     }
                 }
             ]
@@ -1753,6 +1873,7 @@ class GoogleSheetApp(APIApplication):
             self.add_basic_chart,
             self.add_pie_chart,
             self.add_table,
+            self.update_table,
             self.clear_values,
             self.update_values,
             self.batch_update,
