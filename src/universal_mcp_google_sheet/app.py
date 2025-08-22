@@ -1233,7 +1233,6 @@ class GoogleSheetApp(APIApplication):
         range: str,
         value_input_option: str,
         values: list[list[Any]],
-        major_dimension: str | None = None,
         insert_data_option: str | None = None,
         include_values_in_response: bool | None = None,
         response_value_render_option: str | None = None,
@@ -1248,7 +1247,6 @@ class GoogleSheetApp(APIApplication):
             range: The A1 notation of a range to search for a logical table of data. Values are appended after the last row of the table. Example: "Sheet1!A1:B2"
             value_input_option: How the input data should be interpreted. Required. Options: "RAW" or "USER_ENTERED". Example: "USER_ENTERED"
             values: The data to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell. Example: [["A1_val1", "A1_val2"], ["A2_val1", "A2_val2"]]
-            major_dimension: The major dimension of the values. For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]]. Options: "ROWS" or "COLUMNS". Example: "ROWS"
             insert_data_option: How the input data should be inserted. Options: "OVERWRITE" or "INSERT_ROWS". Use "INSERT_ROWS" to add new rows instead of overwriting existing data. Example: "INSERT_ROWS"
             include_values_in_response: Determines if the update response should include the values of the cells that were appended. By default, responses do not include the updated values. Example: True
             response_value_render_option: Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE. Options: "FORMATTED_VALUE", "UNFORMATTED_VALUE", or "FORMULA". Example: "FORMATTED_VALUE"
@@ -1279,9 +1277,6 @@ class GoogleSheetApp(APIApplication):
         if not values or not isinstance(values, list) or len(values) == 0:
             raise ValueError("values must be a non-empty 2D list")
         
-        if major_dimension and major_dimension not in ["ROWS", "COLUMNS"]:
-            raise ValueError('major_dimension must be either "ROWS" or "COLUMNS"')
-        
         if insert_data_option and insert_data_option not in ["OVERWRITE", "INSERT_ROWS"]:
             raise ValueError('insert_data_option must be either "OVERWRITE" or "INSERT_ROWS"')
         
@@ -1298,9 +1293,6 @@ class GoogleSheetApp(APIApplication):
         }
         
         # Add optional parameters if provided
-        if major_dimension:
-            params["majorDimension"] = major_dimension
-        
         if insert_data_option:
             params["insertDataOption"] = insert_data_option
         
